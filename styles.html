@@ -1,0 +1,267 @@
+<style>
+/* ================================================================ */
+/* 1. 基本スタイルとカラーパレット */
+/* ================================================================ */
+
+/* 色の定義：ここでアプリ全体の色を管理します */
+:root {
+    --font-family: 'M PLUS Rounded 1c', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    --bg-color: #f0e7d8; /* 背景色：すこし温かみのあるベージュ */
+    --container-bg: #fffaf0; /* コンテナ背景色：フローラルホワイト */
+    --text-color: #5d4037; /* テキスト色：濃い茶色 */
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --border-color: #dcdcdc;
+
+    /* リバーシ専用の色 */
+    --board-bg: #006400; /* 盤の色：深い緑 */
+    --cell-border: #004d00; /* マスの線の色 */
+    --piece-black: #222;
+    --piece-white: #f8f8f8;
+    --hint-color: rgba(255, 255, 255, 0.4);
+    --btn-color: #4a90e2; /* ボタンの色：少し明るい青 */
+    --btn-hover-color: #357abd;
+}
+
+/* ページ全体の基本設定 */
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+
+/* ゲーム全体を囲むコンテナ */
+#game-container {
+    background-color: var(--container-bg);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px var(--shadow-color);
+    text-align: center;
+    width: 100%;
+    max-width: 550px;
+}
+
+.title {
+    font-size: 2.2em;
+    font-weight: 700;
+    margin: 0 0 25px;
+}
+
+/* ================================================================ */
+/* 2. 操作エリア（盤面サイズ設定、ボタン） */
+/* ================================================================ */
+
+.controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.controls label {
+    font-weight: bold;
+}
+
+.controls input[type="number"] {
+    width: 60px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1em;
+    font-family: inherit;
+}
+
+/* ボタンの共通スタイル */
+.btn {
+    font-family: var(--font-family);
+    background-color: var(--btn-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+    background-color: var(--btn-hover-color);
+    transform: translateY(-2px);
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+
+/* ================================================================ */
+/* 3. ゲーム情報エリア（手番、スコア） */
+/* ================================================================ */
+
+#game-info {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 1.1em;
+    background-color: #f9f9f9;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.player-info > span {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #888;
+}
+
+#player-indicator {
+    width: 30px;
+    height: 30px;
+}
+#scores div {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* ================================================================ */
+/* 4. 盤面と石のスタイル */
+/* ================================================================ */
+
+.board {
+    display: grid;
+    background-color: var(--board-bg);
+    border: 2px solid var(--cell-border);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2), 0 5px 15px var(--shadow-color);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.cell {
+    background-color: var(--board-bg);
+    border: 1px solid var(--cell-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    aspect-ratio: 1 / 1; /* 常に正方形を保つ */
+}
+
+/* 石を置ける場所のヒント表示 */
+.cell.hint {
+    cursor: pointer;
+}
+.cell.hint::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30%;
+    height: 30%;
+    background-color: var(--hint-color);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+.cell.hint:hover::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* 石のスタイル */
+.piece {
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    /* 立体感を出すためのグラデーションと影 */
+    background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), rgba(0,0,0,0.3));
+    box-shadow: inset 0 3px 5px rgba(0,0,0,0.4), 0 3px 5px rgba(0,0,0,0.3);
+}
+
+.piece.black {
+    background-color: var(--piece-black);
+}
+.piece.white {
+    background-color: var(--piece-white);
+}
+
+/* 石を置いたときのアニメーション */
+@keyframes placePiece {
+    from { transform: scale(0.5); opacity: 0.5; }
+    to { transform: scale(1); opacity: 1; }
+}
+.piece.newly-placed {
+    animation: placePiece 0.3s ease-out;
+}
+
+
+/* ================================================================ */
+/* 5. メッセージとモーダルウィンドウ */
+/* ================================================================ */
+
+.message {
+    margin-top: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #d9534f; /* エラーメッセージ（赤） */
+    min-height: 1.5em;
+    transition: all 0.3s;
+}
+.message.info {
+    color: #0275d8; /* 通常情報（青） */
+}
+
+/* モーダルウィンドウの共通スタイル */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: var(--container-bg);
+    padding: 30px 40px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: slide-in 0.3s ease-out;
+}
+.modal-content h2 {
+    font-size: 1.8em;
+    margin: 0 0 25px;
+}
+
+@keyframes slide-in {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
