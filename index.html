@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>リバーシ</title>
+    <!-- Google FontsからM PLUS Rounded 1cを読み込み -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <!-- styles.htmlをインクルード -->
+    <?!= include('styles'); ?>
+</head>
+<body>
+    <div id="game-container">
+        <!-- ゲームタイトル -->
+        <h1 class="title">⚪️⚫️ リバーシ ⚫️⚪️</h1>
+
+        <!-- ゲーム設定エリア -->
+        <div class="controls">
+            <label for="board-size"><ruby>盤面<rt>ばんめん</rt></ruby>サイズ (<ruby>偶数<rt>ぐうすう</rt></ruby>):</label>
+            <input type="number" id="board-size" value="8" min="4" max="12" step="2">
+            <button class="btn" id="start-button"><ruby>開始<rt>かいし</rt></ruby> / リセット</button>
+        </div>
+
+        <!-- ゲーム情報表示エリア -->
+        <div id="game-info">
+            <div id="current-player" class="player-info">
+                <span><ruby>手番<rt>てばん</rt></ruby></span>
+                <div id="player-indicator"></div>
+            </div>
+            <div id="scores" class="player-info">
+                <span>スコア</span>
+                <div>
+                    <span class="score-black">⚫️ 2</span> - <span class="score-white">⚪️ 2</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- リバーシ盤 -->
+        <div class="board" id="board"></div>
+
+        <!-- メッセージ表示エリア -->
+        <div class="message" id="message"></div>
+
+    </div>
+
+    <!-- 勝者表示モーダル -->
+    <div id="winner-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="winner-message"></h2>
+            <button id="play-again-btn" class="btn">もう<ruby>一度<rt>いちど</rt></ruby></button>
+        </div>
+    </div>
+
+
+<script>
+//================================================================
+// 1. 定数と変数
+//================================================================
+
+// --- DOM要素の取得 ---
+// HTMLの中から操作したい部品をあらかじめ見つけて、変数に入れておく作業です。
+const boardElement = document.getElementById('board');
+const boardSizeInput = document.getElementById('board-size');
+const startButton = document.getElementById('start-button');
+const playerIndicator = document.getElementById('player-indicator');
+const blackScoreElement = document.querySelector('.score-black');
+const whiteScoreElement = document.querySelector('.score-white');
+const messageElement = document.getElementById('message');
+const winnerModal = document.getElementById('winner-modal');
+const winnerMessage = document.getElementById('winner-message');
+const playAgainBtn = document.getElementById('play-again-btn');
+
+
+// --- ゲームで使う定数 ---
+// ゲームのルールで変わらない値を、分かりやすい名前で定義しておきます。
+const PIECE = { // マス目の状態を表す数字
+    EMPTY: 0, // 何も置かれていない
+    BLACK: 1, // 黒い石
+    WHITE: 2, // 白い石
+};
+
+const DIRECTIONS = [ // 石をひっくり返す方向を調べるための8方向
+    { r: -1, c: -1 }, { r: -1, c: 0 }, { r: -1, c: 1 }, // 上3方向
+    { r:  0, c: -1 },                 { r:  0, c: 1 }, // 左と右
+    { r:  1, c: -1 }, { r:  1, c: 0 }, { r:  1, c: 1 }  // 下3方向
+];
+
+
+// --- ゲームの状態を管理する変数 ---
+/**
+ * ゲームの現在の状況をすべてまとめて管理するオブジェクト。
+ * @property {Array<Array<number>>} board - 盤面の状態。PIECEの数字が入る。
+ * @property {number} boardSize - 盤面のサイズ (8なら8x8)。
+ * @property {number} currentPlayer - 現在の手番のプレイヤー (PIECE.BLACK or PIECE.WHITE)。
+ * @property {boolean} isGameOver - ゲームが終了したかどうか。
+ * @property {number} passCount - 連続でパスした回数。
+ */
+let gameState = {};
+
+
+//================================================================
+// 2. ゲームの初期化とリセット
+//================================================================
+
+/**
+ * ゲームの状態を初期化し、新しい対局を開始する準備をする関数。
+ */
+function initializeGame() {
+    const size = parseInt(boardSizeInput.value);
+    // サイズが4-12の偶数でなければエラーメッセージを出して処理を中断
+    if (size < 4 || size > 12 || size % 2 !== 0) {
+        showMessage('盤面(ばんめん)サイズは4から12までの偶数(ぐうすう)を<ruby>入力<rt>にゅうりょく</rt></ruby>してください。');
+        boardSizeInput.value = gameState.boardSize || 8; // 前回の有効なサイズに戻す
+        return;
+    }
+
+    gameState = {
+        board: Array(size).fill(null).map(() => Array(size).fill(PIECE.EMPTY)),
+        boardSize: size,
+        currentPlayer: PIECE.BLACK,
+        isGameOver: false,
+        passCount: 0,
+    };
+
+    // 盤面の中央に最初の4つの石を配置
+    const mid1 = size / 2 - 1;
+    const mid2 = size / 2;
+    gameState.board[mid1][mid1] = PIECE.WHITE;
+    gameState.board[mid1][mid2] = PIECE.BLACK;
+    gameState.board[mid2][mid1] = PIECE.BLACK;
+    gameState.board[mid2][mid2] = PIECE.WHITE;
+
+    winnerModal.style.display = 'none'; // 勝者モーダルを隠す
+    clearMessage();
+    renderGame();
+}
+
+/**
+ * ゲームをリセットする関数。
+ * 「もう一度」ボタンから呼ばれる。
+ */
+function resetGame() {
+    boardSizeInput.disabled = false;
+    startButton.disabled = false;
+    initializeGame();
+}
+
+
+//================================================================
+// 3. 画面の描画関連
+//================================================================
+
+/**
+ * ゲームのUI全体（盤面、ゲーム情報）を現在のgameStateに基づいて再描画する関数。
+ */
+function renderGame() {
+    renderBoard();
+    updateGameInfo();
+}
+
+/**
+ * 盤面と石をHTMLに描画する関数。
+ */
+function renderBoard() {
+    boardElement.innerHTML = ''; // 盤面を一旦空にする
+    boardElement.style.gridTemplateColumns = `repeat(${gameState.boardSize}, 1fr)`;
+
+    const maxBoardWidth = Math.min(window.innerWidth * 0.9, 500);
+    const cellSize = maxBoardWidth / gameState.boardSize;
+    boardElement.style.width = `${maxBoardWidth}px`;
+    boardElement.style.height = `${maxBoardWidth}px`;
+
+    const validMoves = gameState.isGameOver ? [] : getValidMoves(gameState.currentPlayer);
+
+    for (let r = 0; r < gameState.boardSize; r++) {
+        for (let c = 0; c < gameState.boardSize; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+
+            const pieceType = gameState.board[r][c];
+            if (pieceType !== PIECE.EMPTY) {
+                // 石が置かれている場合
+                const piece = createPieceElement(pieceType);
+                cell.appendChild(piece);
+            } else if (!gameState.isGameOver) {
+                // 石が置かれていない、かつ、ゲームが終了していない場合
+                const isHint = validMoves.some(move => move.r === r && move.c === c);
+                if (isHint) {
+                    cell.classList.add('hint');
+                    cell.addEventListener('click', handleCellClick);
+                }
+            }
+            boardElement.appendChild(cell);
+        }
+    }
+}
+
+/**
+ * 石のHTML要素を作成するヘルパー関数。
+ * @param {number} player - PIECE.BLACK または PIECE.WHITE
+ * @param {boolean} isNew - 新しく置かれた石かどうか（アニメーション用）
+ * @returns {HTMLElement} - 作成された石のdiv要素
+ */
+function createPieceElement(player, isNew = false) {
+    const piece = document.createElement('div');
+    piece.className = 'piece';
+    piece.classList.add(player === PIECE.BLACK ? 'black' : 'white');
+    if (isNew) {
+        piece.classList.add('newly-placed');
+    }
+    return piece;
+}
+
+/**
+ * 現在の手番やスコアなどのゲーム情報を更新する関数。
+ */
+function updateGameInfo() {
+    // 手番インジケーターの更新
+    playerIndicator.className = gameState.currentPlayer === PIECE.BLACK ? 'piece black' : 'piece white';
+
+    // スコアの計算と更新
+    let blackScore = 0;
+    let whiteScore = 0;
+    for (let r = 0; r < gameState.boardSize; r++) {
+        for (let c = 0; c < gameState.boardSize; c++) {
+            if (gameState.board[r][c] === PIECE.BLACK) blackScore++;
+            if (gameState.board[r][c] === PIECE.WHITE) whiteScore++;
+        }
+    }
+    blackScoreElement.textContent = `⚫️ ${blackScore}`;
+    whiteScoreElement.textContent = `⚪️ ${whiteScore}`;
+}
+
+
+//================================================================
+// 4. ユーザー操作のハンドリング
+//================================================================
+
+/**
+ * 盤面のセルがクリックされたときの処理を行う関数。
+ * @param {Event} event - クリックイベント
+ */
+function handleCellClick(event) {
+    if (gameState.isGameOver) return; // ゲーム終了時は何もしない
+
+    const targetCell = event.currentTarget;
+    const row = parseInt(targetCell.dataset.row);
+    const col = parseInt(targetCell.dataset.col);
+
+    const flippablePieces = getFlippablePieces(row, col, gameState.currentPlayer);
+
+    if (flippablePieces.length > 0) {
+        // 石を置いてひっくり返す処理
+        placeAndFlipPieces(row, col, flippablePieces);
+    } else {
+        // ルール上置けない場所なのでメッセージ表示
+        showMessage('そこには<ruby>置<rt>お</rt></ruby>けません。');
+    }
+}
+
+
+//================================================================
+// 5. ゲーム進行のコアロジック
+//================================================================
+
+/**
+ * 石を置き、指定された相手の石をひっくり返す関数。
+ * @param {number} r - 石を置く行
+ * @param {number} c - 石を置く列
+ * @param {Array<object>} flippablePieces - ひっくり返す石の座標リスト
+ */
+function placeAndFlipPieces(r, c, flippablePieces) {
+    clearMessage();
+    gameState.passCount = 0;
+
+    // 1. 新しい石を盤面に置く
+    gameState.board[r][c] = gameState.currentPlayer;
+    
+    // 2. 相手の石を自分の色に変える
+    flippablePieces.forEach(p => {
+        gameState.board[p.r][p.c] = gameState.currentPlayer;
+    });
+
+    // 3. 次のプレイヤーへ手番を移す
+    switchPlayer();
+}
+
+
+/**
+ * 手番を交代し、ゲームの次のステップに進む関数。
+ */
+function switchPlayer() {
+    gameState.currentPlayer = (gameState.currentPlayer === PIECE.BLACK) ? PIECE.WHITE : PIECE.BLACK;
+    
+    renderGame(); // 盤面を再描画
+
+    // ゲーム終了条件をチェック
+    if (checkEndGame()) return;
+    
+    // 次のプレイヤーが置ける場所があるかチェック
+    const nextValidMoves = getValidMoves(gameState.currentPlayer);
+    if (nextValidMoves.length === 0) {
+        gameState.passCount++;
+        const playerName = gameState.currentPlayer === PIECE.BLACK ? '黒(くろ)' : '白(しろ)';
+        showMessage(`${playerName}はパスしました。`, 'info');
+        // 1.5秒後に自動的に再度手番を交代
+        setTimeout(() => switchPlayer(), 1500);
+    }
+}
+
+/**
+ * ゲームの終了条件をチェックする関数。
+ * @returns {boolean} - ゲームが終了した場合はtrue
+ */
+function checkEndGame() {
+    // 盤面がすべて埋まったか、両者ともパスした場合にゲーム終了
+    const isBoardFull = !gameState.board.flat().includes(PIECE.EMPTY);
+    if (isBoardFull || gameState.passCount >= 2) {
+        endGame();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * ゲームを終了させ、結果を表示する関数。
+ */
+function endGame() {
+    gameState.isGameOver = true;
+    boardSizeInput.disabled = false; // 設定を再度有効化
+    startButton.disabled = false;
+    
+    const blackScore = parseInt(blackScoreElement.textContent.replace('⚫️ ', ''));
+    const whiteScore = parseInt(whiteScoreElement.textContent.replace('⚪️ ', ''));
+
+    let msg = "";
+    if (blackScore > whiteScore) {
+        msg = `🎉 <ruby>黒<rt>くろ</rt></ruby>の<ruby>勝<rt>か</rt></ruby>ち！ (${blackScore} - ${whiteScore}) 🎉`;
+    } else if (whiteScore > blackScore) {
+        msg = `🎉 <ruby>白<rt>しろ</rt></ruby>の<ruby>勝<rt>か</rt></ruby>ち！ (${whiteScore} - ${blackScore}) 🎉`;
+    } else {
+        msg = `<ruby>引<rt>ひ</rt></ruby>き<ruby>分<rt>わ</rt></ruby>けです！ (${blackScore} - ${whiteScore})`;
+    }
+    
+    winnerMessage.innerHTML = msg; // innerHTMLを使ってrubyタグを解釈させる
+    winnerModal.style.display = 'flex';
+}
+
+
+//================================================================
+// 6. ゲームルールの判定関数
+//================================================================
+
+/**
+ * 指定されたマスに石を置いた場合に、ひっくり返せる相手の石のリストを取得する関数。
+ * @param {number} r - 石を置く行
+ * @param {number} c - 石を置く列
+ * @param {number} player - 現在のプレイヤー
+ * @returns {Array<object>} - ひっくり返せる石の座標 {r, c} の配列
+ */
+function getFlippablePieces(r, c, player) {
+    if (gameState.board[r][c] !== PIECE.EMPTY) return []; // 空きマスでなければ置けない
+
+    const opponent = player === PIECE.BLACK ? PIECE.WHITE : PIECE.BLACK;
+    let allFlippable = [];
+
+    // 8方向をループでチェック
+    DIRECTIONS.forEach(dir => {
+        let line = [];
+        let nr = r + dir.r;
+        let nc = c + dir.c;
+
+        // 相手の石が続く限り、その座標をlineに追加
+        while (nr >= 0 && nr < gameState.boardSize && nc >= 0 && nc < gameState.boardSize && gameState.board[nr][nc] === opponent) {
+            line.push({ r: nr, c: nc });
+            nr += dir.r;
+            nc += dir.c;
+        }
+
+        // 相手の石の先に自分の石があれば、そのlineはひっくり返せる
+        if (nr >= 0 && nr < gameState.boardSize && nc >= 0 && nc < gameState.boardSize && gameState.board[nr][nc] === player) {
+            allFlippable = allFlippable.concat(line);
+        }
+    });
+    return allFlippable;
+}
+
+/**
+ * 現在のプレイヤーが石を置けるすべての有効なマスのリストを取得する関数。
+ * @param {number} player - 現在のプレイヤー
+ * @returns {Array<object>} - 石を置けるマスの座標 {r, c} の配列
+ */
+function getValidMoves(player) {
+    const moves = [];
+    for (let r = 0; r < gameState.boardSize; r++) {
+        for (let c = 0; c < gameState.boardSize; c++) {
+            if (gameState.board[r][c] === PIECE.EMPTY) {
+                if (getFlippablePieces(r, c, player).length > 0) {
+                    moves.push({ r, c });
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+
+//================================================================
+// 7. UI操作とヘルパー関数
+//================================================================
+
+/**
+ * メッセージエリアにテキストを表示する関数。
+ * @param {string} msg - 表示するメッセージ
+ * @param {string} type - 'error' (赤) or 'info' (青)
+ */
+function showMessage(msg, type = 'error') {
+    messageElement.innerHTML = msg; // innerHTMLを使ってrubyタグを解釈させる
+    messageElement.className = 'message'; // classを一度リセット
+    if (type === 'info') {
+        messageElement.classList.add('info');
+    }
+}
+
+/**
+ * メッセージエリアのテキストを消去する関数。
+ */
+function clearMessage() {
+    messageElement.textContent = '';
+}
+
+
+//================================================================
+// 8. ゲーム開始
+//================================================================
+
+// スタートボタンがクリックされたらゲームを初期化
+startButton.addEventListener('click', () => {
+    boardSizeInput.disabled = true; // ゲーム中はサイズ変更不可
+    startButton.disabled = true;
+    initializeGame();
+});
+
+// 「もう一度」ボタンがクリックされたらゲームをリセット
+playAgainBtn.addEventListener('click', resetGame);
+
+// ページが読み込まれたときに、最初のゲームをセットアップ
+document.addEventListener('DOMContentLoaded', () => {
+    initializeGame();
+});
+
+</script>
+</body>
+</html>
