@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,8 +8,298 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
-    <!-- styles.htmlをインクルード -->
-    <?!= include('styles'); ?>
+    
+    <!-- ここにスタイルシートの内容が直接埋め込まれています -->
+    <style>
+/* ================================================================ */
+/* 1. 基本スタイルとカラーパレット */
+/* ================================================================ */
+
+/* 色の定義：ここでアプリ全体の色を管理します。変更することでアプリのテーマカラーを変えられます。 */
+:root {
+    --font-family: 'M PLUS Rounded 1c', 'Hiragino Sans', 'Yu Gothic', sans-serif; /* 使用するフォント */
+    --bg-color: #f0e7d8; /* 背景色：すこし温かみのあるベージュ */
+    --container-bg: #fffaf0; /* コンテナ背景色：フローラルホワイト（白に近い薄い黄色） */
+    --text-color: #5d4037; /* テキスト色：濃い茶色 */
+    --shadow-color: rgba(0, 0, 0, 0.15); /* 影の色 */
+    --border-color: #dcdcdc; /* 枠線の色 */
+
+    /* リバーシ専用の色 */
+    --board-bg: #006400; /* 盤の色：深い緑 */
+    --cell-border: #004d00; /* マスの線の色 */
+    --piece-black: #222; /* 黒石の色 */
+    --piece-white: #f8f8f8; /* 白石の色 */
+    --hint-color: rgba(255, 255, 255, 0.4); /* 石を置ける場所のヒントの色 */
+    --btn-color: #4a90e2; /* ボタンの色：少し明るい青 */
+    --btn-hover-color: #357abd; /* ボタンをマウスオーバーした時の色 */
+    --message-error-color: #d9534f; /* エラーメッセージの色（赤） */
+    --message-info-color: #0275d8; /* 情報メッセージの色（青） */
+}
+
+/* ページ全体の基本設定 */
+body {
+    font-family: var(--font-family); /* 全体のフォントを適用 */
+    background-color: var(--bg-color); /* 背景色を設定 */
+    display: flex; /* Flexboxを使って要素を中央に配置 */
+    justify-content: center; /* 水平方向の中央揃え */
+    align-items: center; /* 垂直方向の中央揃え */
+    min-height: 100vh; /* 画面の高さいっぱいを使用 */
+    margin: 0; /* デフォルトのマージンを削除 */
+    padding: 20px; /* 内側の余白 */
+    color: var(--text-color); /* テキストの色 */
+    box-sizing: border-box; /* パディングとボーダーを要素の高さ・幅に含める */
+}
+
+/* ゲーム全体を囲むコンテナ */
+#game-container {
+    background-color: var(--container-bg); /* 背景色 */
+    padding: 25px; /* 内側の余白 */
+    border-radius: 20px; /* 角を丸くする */
+    box-shadow: 0 10px 30px var(--shadow-color); /* 影を付ける */
+    text-align: center; /* テキストを中央揃え */
+    width: 100%; /* 親要素の幅いっぱいに広げる */
+    max-width: 550px; /* 最大幅を設定し、それ以上は広がらないようにする */
+}
+
+/* ゲームのタイトル */
+.title {
+    font-size: 2.2em; /* 文字サイズ */
+    font-weight: 700; /* 太字 */
+    margin: 0 0 25px; /* 下側のマージン */
+}
+
+/* ================================================================ */
+/* 2. 操作エリア（盤面サイズ設定、ボタン） */
+/* ================================================================ */
+
+/* 盤面サイズ設定とボタンをまとめるエリア */
+.controls {
+    margin-bottom: 20px; /* 下側のマージン */
+    display: flex; /* Flexboxを使って要素を配置 */
+    justify-content: center; /* 水平方向の中央揃え */
+    align-items: center; /* 垂直方向の中央揃え */
+    gap: 15px; /* 要素間のスペース */
+    background-color: #f9f9f9; /* 背景色 */
+    padding: 15px; /* 内側の余白 */
+    border-radius: 12px; /* 角を丸くする */
+    border: 1px solid var(--border-color); /* 枠線 */
+}
+
+/* 盤面サイズ入力のラベル */
+.controls label {
+    font-weight: bold; /* 太字 */
+}
+
+/* 盤面サイズ入力フィールド */
+.controls input[type="number"] {
+    width: 60px; /* 幅 */
+    padding: 8px; /* 内側の余白 */
+    border: 1px solid #ccc; /* 枠線 */
+    border-radius: 8px; /* 角を丸くする */
+    text-align: center; /* テキストを中央揃え */
+    font-size: 1em; /* 文字サイズ */
+    font-family: inherit; /* 親要素のフォントを継承 */
+}
+
+/* ボタンの共通スタイル */
+.btn {
+    font-family: var(--font-family); /* フォントを適用 */
+    background-color: var(--btn-color); /* 背景色 */
+    color: white; /* 文字色 */
+    border: none; /* 枠線を削除 */
+    padding: 10px 20px; /* 内側の余白 */
+    font-size: 1em; /* 文字サイズ */
+    font-weight: 700; /* 太字 */
+    border-radius: 8px; /* 角を丸くする */
+    cursor: pointer; /* マウスカーソルをポインターにする */
+    transition: all 0.2s; /* ホバー時のアニメーションをスムーズにする */
+}
+
+/* ボタンをマウスオーバーした時（無効化されていない場合） */
+.btn:hover:not(:disabled) {
+    background-color: var(--btn-hover-color); /* 背景色を変更 */
+    transform: translateY(-2px); /* 少し上に移動するアニメーション */
+}
+
+/* 無効化されたボタン */
+.btn:disabled {
+    background-color: #ccc; /* 背景色を灰色に */
+    cursor: not-allowed; /* マウスカーソルを使用禁止マークに */
+}
+
+
+/* ================================================================ */
+/* 3. ゲーム情報エリア（手番、スコア） */
+/* ================================================================ */
+
+/* 手番とスコア表示をまとめるエリア */
+#game-info {
+    display: flex; /* Flexboxを使って要素を配置 */
+    justify-content: space-around; /* 要素間に均等なスペースを配置 */
+    align-items: center; /* 垂直方向の中央揃え */
+    margin-bottom: 25px; /* 下側のマージン */
+    font-size: 1.1em; /* 文字サイズ */
+    background-color: #f9f9f9; /* 背景色 */
+    padding: 10px 15px; /* 内側の余白 */
+    border-radius: 12px; /* 角を丸くする */
+    border: 1px solid var(--border-color); /* 枠線 */
+}
+
+/* プレイヤー情報（手番、スコア）の各ブロック */
+.player-info {
+    display: flex; /* Flexbox */
+    flex-direction: column; /* 縦方向に並べる */
+    align-items: center; /* 水平方向の中央揃え */
+    gap: 8px; /* 要素間のスペース */
+}
+/* プレイヤー情報のラベル（例:「手番」「スコア」） */
+.player-info > span {
+    font-weight: bold; /* 太字 */
+    font-size: 0.9em; /* 文字サイズ */
+    color: #888; /* 文字色 */
+}
+
+/* 現在の手番を示す石のインジケーター */
+#player-indicator {
+    width: 30px; /* 幅 */
+    height: 30px; /* 高さ */
+}
+/* スコア表示の数字部分 */
+#scores div {
+    font-weight: bold; /* 太字 */
+    font-size: 1.2em; /* 文字サイズ */
+}
+
+/* ================================================================ */
+/* 4. 盤面と石のスタイル */
+/* ================================================================ */
+
+/* リバーシ盤の全体 */
+.board {
+    display: grid; /* Gridレイアウトを使ってマス目を配置 */
+    background-color: var(--board-bg); /* 盤の背景色 */
+    border: 2px solid var(--cell-border); /* 盤の外側の枠線 */
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2), 0 5px 15px var(--shadow-color); /* 影を付けて立体感を出す */
+    border-radius: 8px; /* 角を丸くする */
+    overflow: hidden; /* 角丸の外にはみ出す内容を隠す */
+    margin: 0 auto; /* 左右中央揃え */
+}
+
+/* 盤面の一つのマス */
+.cell {
+    background-color: var(--board-bg); /* マスの背景色（盤と同じ色） */
+    border: 1px solid var(--cell-border); /* マスを区切る線 */
+    display: flex; /* Flexbox */
+    justify-content: center; /* 石を水平方向の中央に配置 */
+    align-items: center; /* 石を垂直方向の中央に配置 */
+    position: relative; /* 子要素（ヒント）の配置基準 */
+    aspect-ratio: 1 / 1; /* 幅と高さの比率を1:1（正方形）に保つ */
+}
+
+/* 石を置ける場所のヒント表示（マスの上に半透明の円を表示） */
+.cell.hint {
+    cursor: pointer; /* マウスカーソルをポインターにする */
+}
+.cell.hint::after {
+    content: ''; /* 擬似要素として空のコンテンツを作成 */
+    position: absolute; /* 親要素（.cell）を基準に配置 */
+    top: 50%; /* 親要素の上から50% */
+    left: 50%; /* 親要素の左から50% */
+    width: 30%; /* 幅 */
+    height: 30%; /* 高さ */
+    background-color: var(--hint-color); /* ヒントの色 */
+    border-radius: 50%; /* 円形にする */
+    transform: translate(-50%, -50%); /* 中央に配置 */
+    opacity: 0.8; /* 半透明にする */
+    transition: all 0.2s ease; /* ホバー時のアニメーションをスムーズにする */
+}
+/* ヒントの上にマウスオーバーした時 */
+.cell.hint:hover::after {
+    opacity: 1; /* 不透明にする */
+    transform: translate(-50%, -50%) scale(1.1); /* 少し拡大するアニメーション */
+}
+
+/* 石のスタイル */
+.piece {
+    width: 85%; /* マスの85%の幅 */
+    height: 85%; /* マスの85%の高さ */
+    border-radius: 50%; /* 円形にする */
+    /* 立体感を出すためのグラデーションと影 */
+    background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), rgba(0,0,0,0.3));
+    box-shadow: inset 0 3px 5px rgba(0,0,0,0.4), 0 3px 5px rgba(0,0,0,0.3);
+}
+
+/* 黒石の色 */
+.piece.black {
+    background-color: var(--piece-black);
+}
+/* 白石の色 */
+.piece.white {
+    background-color: var(--piece-white);
+}
+
+/* 石を置いたときのアニメーション */
+@keyframes placePiece {
+    from { transform: scale(0.5); opacity: 0.5; } /* 開始時は小さく半透明 */
+    to { transform: scale(1); opacity: 1; } /* 終了時は通常のサイズと不透明度 */
+}
+.piece.newly-placed {
+    animation: placePiece 0.3s ease-out; /* 0.3秒でアニメーション実行 */
+}
+
+
+/* ================================================================ */
+/* 5. メッセージとモーダルウィンドウ */
+/* ================================================================ */
+
+/* ゲーム中のメッセージ表示エリア */
+.message {
+    margin-top: 20px; /* 上側のマージン */
+    font-size: 1.1em; /* 文字サイズ */
+    font-weight: bold; /* 太字 */
+    color: var(--message-error-color); /* デフォルトはエラーメッセージの色（赤） */
+    min-height: 1.5em; /* 常に一定の高さを確保し、表示のちらつきを防ぐ */
+    transition: all 0.3s; /* 色などの変化をスムーズにする */
+}
+/* 情報メッセージの場合 */
+.message.info {
+    color: var(--message-info-color); /* 情報メッセージの色（青） */
+}
+
+/* モーダルウィンドウの共通スタイル（ゲーム終了時に勝敗を表示するポップアップ） */
+.modal {
+    position: fixed; /* 画面に固定 */
+    z-index: 1000; /* 他の要素より手前に表示 */
+    left: 0;
+    top: 0;
+    width: 100%; /* 画面いっぱいに広げる */
+    height: 100%; /* 画面いっぱいに広げる */
+    background-color: rgba(0,0,0,0.5); /* 半透明の黒い背景 */
+    display: flex; /* Flexbox */
+    justify-content: center; /* 水平方向の中央揃え */
+    align-items: center; /* 垂直方向の中央揃え */
+}
+/* モーダルウィンドウの内容部分 */
+.modal-content {
+    background-color: var(--container-bg); /* 背景色 */
+    padding: 30px 40px; /* 内側の余白 */
+    border-radius: 15px; /* 角を丸くする */
+    text-align: center; /* テキストを中央揃え */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* 影 */
+    animation: slide-in 0.3s ease-out; /* 表示時のアニメーション */
+}
+/* モーダル内の勝敗メッセージ */
+.modal-content h2 {
+    font-size: 1.8em; /* 文字サイズ */
+    margin: 0 0 25px; /* 下側のマージン */
+}
+
+/* モーダル表示時のアニメーション */
+@keyframes slide-in {
+    from { transform: translateY(-30px); opacity: 0; } /* 開始時は少し上からフェードイン */
+    to { transform: translateY(0); opacity: 1; } /* 終了時は元の位置に不透明に */
+}
+    </style>
 </head>
 <body>
     <div id="game-container">
@@ -22,432 +313,531 @@
             <button class="btn" id="start-button"><ruby>開始<rt>かいし</rt></ruby> / リセット</button>
         </div>
 
-        <!-- ゲーム情報表示エリア -->
+        <!-- ゲーム情報表示エリア: 現在の手番とスコアを表示します -->
         <div id="game-info">
             <div id="current-player" class="player-info">
                 <span><ruby>手番<rt>てばん</rt></ruby></span>
-                <div id="player-indicator"></div>
+                <div id="player-indicator"></div> <!-- 現在の手番の石を表示する場所 -->
             </div>
             <div id="scores" class="player-info">
                 <span>スコア</span>
                 <div>
-                    <span class="score-black">⚫️ 2</span> - <span class="score-white">⚪️ 2</span>
+                    <!-- スコアはJavaScriptで動的に更新されます -->
+                    <span class="score-black">⚫️ 0</span> - <span class="score-white">⚪️ 0</span>
                 </div>
             </div>
         </div>
 
-        <!-- リバーシ盤 -->
+        <!-- リバーシ盤: マスと石はJavaScriptで生成されます -->
         <div class="board" id="board"></div>
 
-        <!-- メッセージ表示エリア -->
+        <!-- メッセージ表示エリア: エラーメッセージやパスの通知などを表示します -->
         <div class="message" id="message"></div>
 
     </div>
 
-    <!-- 勝者表示モーダル -->
+    <!-- 勝者表示モーダル: ゲーム終了時に勝敗を表示するためのポップアップウィンドウです -->
     <div id="winner-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2 id="winner-message"></h2>
+            <h2 id="winner-message"></h2> <!-- 勝敗メッセージが表示される場所 -->
             <button id="play-again-btn" class="btn">もう<ruby>一度<rt>いちど</rt></ruby></button>
         </div>
     </div>
 
 
 <script>
-//================================================================
-// 1. 定数と変数
-//================================================================
+// ================================================================
+// 1. 定数とDOM要素の取得
+//    ゲームで使用する定数や、HTMLの中から操作したい要素（ボタンや盤面など）を
+//    あらかじめJavaScriptの変数に保存しておくセクションです。
+// ================================================================
 
 // --- DOM要素の取得 ---
-// HTMLの中から操作したい部品をあらかじめ見つけて、変数に入れておく作業です。
-const boardElement = document.getElementById('board');
-const boardSizeInput = document.getElementById('board-size');
-const startButton = document.getElementById('start-button');
-const playerIndicator = document.getElementById('player-indicator');
-const blackScoreElement = document.querySelector('.score-black');
-const whiteScoreElement = document.querySelector('.score-white');
-const messageElement = document.getElementById('message');
-const winnerModal = document.getElementById('winner-modal');
-const winnerMessage = document.getElementById('winner-message');
-const playAgainBtn = document.getElementById('play-again-btn');
+// HTMLファイルの中にある特定のidやclassを持つ要素をJavaScriptで操作できるように取得しています。
+// これらの変数を使って、要素の内容を変更したり、イベント（クリックなど）を監視したりします。
+const boardElement = document.getElementById('board'); // リバーシ盤全体の要素
+const boardSizeInput = document.getElementById('board-size'); // 盤面サイズ入力フィールド
+const startButton = document.getElementById('start-button'); // 「開始 / リセット」ボタン
+const playerIndicator = document.getElementById('player-indicator'); // 現在の手番のプレイヤーを示す石の表示エリア
+const blackScoreElement = document.querySelector('.score-black'); // 黒石のスコア表示エリア
+const whiteScoreElement = document.querySelector('.score-white'); // 白石のスコア表示エリア
+const messageElement = document.getElementById('message'); // ゲーム中のメッセージ表示エリア（エラー、パス通知など）
+const winnerModal = document.getElementById('winner-modal'); // ゲーム終了時の勝者表示モーダルウィンドウ
+const winnerMessage = document.getElementById('winner-message'); // 勝敗メッセージが表示される要素
+const playAgainBtn = document.getElementById('play-again-btn'); // モーダル内の「もう一度」ボタン
 
 
 // --- ゲームで使う定数 ---
-// ゲームのルールで変わらない値を、分かりやすい名前で定義しておきます。
-const PIECE = { // マス目の状態を表す数字
-    EMPTY: 0, // 何も置かれていない
-    BLACK: 1, // 黒い石
-    WHITE: 2, // 白い石
+// ゲームのルールで変更されない固定の値を、分かりやすい名前で定義しています。
+const PIECE = { // マス目の状態を表す数字。プログラム内で意味が明確になります。
+    EMPTY: 0, // 何も石が置かれていないマス
+    BLACK: 1, // 黒い石が置かれているマス、または黒プレイヤー
+    WHITE: 2, // 白い石が置かれているマス、または白プレイヤー
 };
 
-const DIRECTIONS = [ // 石をひっくり返す方向を調べるための8方向
-    { r: -1, c: -1 }, { r: -1, c: 0 }, { r: -1, c: 1 }, // 上3方向
-    { r:  0, c: -1 },                 { r:  0, c: 1 }, // 左と右
-    { r:  1, c: -1 }, { r:  1, c: 0 }, { r:  1, c: 1 }  // 下3方向
+const DIRECTIONS = [ // 石をひっくり返す方向を調べるための、縦・横・斜めの8方向の移動量
+    { r: -1, c: -1 }, { r: -1, c: 0 }, { r: -1, c: 1 }, // 上方向（左上、真上、右上）
+    { r:  0, c: -1 },                 { r:  0, c: 1 }, // 左右方向（真左、真右）
+    { r:  1, c: -1 }, { r:  1, c: 0 }, { r:  1, c: 1 }  // 下方向（左下、真下、右下）
 ];
 
 
 // --- ゲームの状態を管理する変数 ---
 /**
- * ゲームの現在の状況をすべてまとめて管理するオブジェクト。
- * @property {Array<Array<number>>} board - 盤面の状態。PIECEの数字が入る。
- * @property {number} boardSize - 盤面のサイズ (8なら8x8)。
- * @property {number} currentPlayer - 現在の手番のプレイヤー (PIECE.BLACK or PIECE.WHITE)。
- * @property {boolean} isGameOver - ゲームが終了したかどうか。
- * @property {number} passCount - 連続でパスした回数。
+ * ゲームの現在の状況をすべてまとめて管理するオブジェクトです。
+ * このオブジェクトの値を更新することで、ゲームの状態を変化させることができます。
+ * @property {Array<Array<number>>} board - 盤面の状態を二次元配列で保持します。各要素にはPIECEの数字が入ります。
+ * @property {number} boardSize - 盤面のサイズ（例: 8なら8x8マス）。
+ * @property {number} currentPlayer - 現在手番のプレイヤー（PIECE.BLACK または PIECE.WHITE）。
+ * @property {number} blackScore - 黒プレイヤーの現在の石の数。
+ * @property {number} whiteScore - 白プレイヤーの現在の石の数。
+ * @property {boolean} isGameOver - ゲームが終了したかどうかを示すフラグ（trueなら終了）。
+ * @property {number} passCount - 連続でパスした回数。これが2になるとゲーム終了です。
  */
 let gameState = {};
 
 
-//================================================================
+// ================================================================
 // 2. ゲームの初期化とリセット
-//================================================================
+//    新しいゲームを開始したり、ゲームを初期状態に戻したりする関数群です。
+// ================================================================
 
 /**
- * ゲームの状態を初期化し、新しい対局を開始する準備をする関数。
+ * ゲームの状態を初期化し、新しい対局を開始する準備をする関数です。
+ * 盤面サイズが適切かどうかのチェックもここで行います。
  */
 function initializeGame() {
+    // 盤面入力フィールドから現在のサイズを取得し、整数に変換します。
     const size = parseInt(boardSizeInput.value);
-    // サイズが4-12の偶数でなければエラーメッセージを出して処理を中断
+
+    // 盤面サイズのバリデーション（入力値が適切かどうかの確認）
+    // サイズが4から12までの偶数でなければ、エラーメッセージを表示して処理を中断します。
     if (size < 4 || size > 12 || size % 2 !== 0) {
-        showMessage('盤面(ばんめん)サイズは4から12までの偶数(ぐうすう)を<ruby>入力<rt>にゅうりょく</rt></ruby>してください。');
-        boardSizeInput.value = gameState.boardSize || 8; // 前回の有効なサイズに戻す
-        return;
+        showMessage('盤面(ばんめん)サイズは4から12までの<ruby>偶数<rt>ぐうすう</rt></ruby>を<ruby>入力<rt>にゅうりょく</rt></ruby>してください。', 'error');
+        // 無効な入力の場合、前回の有効なサイズ、またはデフォルトの8に戻します。
+        boardSizeInput.value = gameState.boardSize || 8;
+        return; // これ以上初期化処理を進めずに終了
     }
 
+    // ゲーム状態オブジェクトを初期化します。
+    // Array(size).fill(null).map(() => Array(size).fill(PIECE.EMPTY))
+    //   - 指定されたサイズの二次元配列（盤面）を作成し、全てのマスを「空（EMPTY）」で埋めます。
     gameState = {
         board: Array(size).fill(null).map(() => Array(size).fill(PIECE.EMPTY)),
         boardSize: size,
-        currentPlayer: PIECE.BLACK,
-        isGameOver: false,
-        passCount: 0,
+        currentPlayer: PIECE.BLACK, // ゲームは常に黒からスタート
+        blackScore: 2, // 初期配置で黒石は2つ
+        whiteScore: 2, // 初期配置で白石は2つ
+        isGameOver: false, // ゲームはまだ終了していません
+        passCount: 0, // パスカウントをリセット
     };
 
-    // 盤面の中央に最初の4つの石を配置
-    const mid1 = size / 2 - 1;
-    const mid2 = size / 2;
-    gameState.board[mid1][mid1] = PIECE.WHITE;
-    gameState.board[mid1][mid2] = PIECE.BLACK;
-    gameState.board[mid2][mid1] = PIECE.BLACK;
-    gameState.board[mid2][mid2] = PIECE.WHITE;
+    // 盤面の中央に最初の4つの石を配置します。
+    // リバーシのゲーム開始時の定石です。
+    const mid1 = size / 2 - 1; // 中央より1つ手前のインデックス
+    const mid2 = size / 2;     // 中央のインデックス
+    gameState.board[mid1][mid1] = PIECE.WHITE; // 左上白
+    gameState.board[mid1][mid2] = PIECE.BLACK; // 右上黒
+    gameState.board[mid2][mid1] = PIECE.BLACK; // 左下黒
+    gameState.board[mid2][mid2] = PIECE.WHITE; // 右下白
 
-    winnerModal.style.display = 'none'; // 勝者モーダルを隠す
-    clearMessage();
-    renderGame();
+    winnerModal.style.display = 'none'; // 勝者表示モーダルがもし表示されていれば隠します。
+    clearMessage(); // メッセージエリアの表示を消去します。
+    renderGame(); // 初期化されたゲーム状態を元に、画面全体を再描画します。
 }
 
 /**
- * ゲームをリセットする関数。
- * 「もう一度」ボタンから呼ばれる。
+ * ゲームをリセットする関数です。「もう一度」ボタンがクリックされたときに呼び出されます。
+ * 盤面サイズ入力とスタートボタンを再度有効にし、ゲームを初期状態に戻します。
  */
 function resetGame() {
-    boardSizeInput.disabled = false;
-    startButton.disabled = false;
-    initializeGame();
+    boardSizeInput.disabled = false; // 盤面サイズ入力フィールドを操作可能にする
+    startButton.disabled = false; // スタートボタンを操作可能にする
+    initializeGame(); // ゲームを初期化して、新しい対局を開始
 }
 
 
-//================================================================
+// ================================================================
 // 3. 画面の描画関連
-//================================================================
+//    ゲームの現在の状態（盤面、スコア、手番など）をHTMLに表示する関数群です。
+// ================================================================
 
 /**
- * ゲームのUI全体（盤面、ゲーム情報）を現在のgameStateに基づいて再描画する関数。
+ * ゲームのUI全体（盤面、手番、スコアなど）を現在のgameStateに基づいて再描画する関数です。
+ * ゲームの状態が変化した際には、必ずこの関数を呼び出して画面を最新の状態に更新します。
  */
 function renderGame() {
-    renderBoard();
-    updateGameInfo();
+    renderBoard(); // 盤面と石の表示を更新
+    updateGameInfo(); // 手番とスコアの表示を更新
 }
 
 /**
- * 盤面と石をHTMLに描画する関数。
+ * 盤面と石をHTMLに描画する関数です。
+ * 毎回盤面をクリアして再構築することで、常に最新の盤面状態を反映させます。
  */
 function renderBoard() {
-    boardElement.innerHTML = ''; // 盤面を一旦空にする
+    boardElement.innerHTML = ''; // 盤面の内容を一旦全て削除し、まっさらにします。
+    
+    // 盤面のグリッドレイアウト（マス目の並び）を設定します。
+    // 例: boardSizeが8なら「repeat(8, 1fr)」となり、8列均等幅のグリッドが作成されます。
     boardElement.style.gridTemplateColumns = `repeat(${gameState.boardSize}, 1fr)`;
 
+    // 盤面の表示サイズを調整します。画面幅に合わせて、盤面が画面からはみ出さないようにします。
+    // (ウィンドウ幅の90%または最大500pxの小さい方)
     const maxBoardWidth = Math.min(window.innerWidth * 0.9, 500);
-    const cellSize = maxBoardWidth / gameState.boardSize;
     boardElement.style.width = `${maxBoardWidth}px`;
-    boardElement.style.height = `${maxBoardWidth}px`;
+    boardElement.style.height = `${maxBoardWidth}px`; // 正方形になるように高さも同じに設定
 
+    // ゲームが終了していない場合のみ、石を置ける場所（ヒント）を計算します。
+    // ヒントの表示はパフォーマンスに影響するため、必要な時のみ計算します。
     const validMoves = gameState.isGameOver ? [] : getValidMoves(gameState.currentPlayer);
 
+    // 盤面の全てのマスをループ処理して、HTML要素を生成し、石を配置します。
     for (let r = 0; r < gameState.boardSize; r++) {
         for (let c = 0; c < gameState.boardSize; c++) {
+            // マス（セル）のdiv要素を作成
             const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.dataset.row = r;
-            cell.dataset.col = c;
+            cell.className = 'cell'; // CSSクラスを適用
+            cell.dataset.row = r; // そのマスが何行目かを示すデータを保存
+            cell.dataset.col = c; // そのマスが何列目かを示すデータを保存
 
-            const pieceType = gameState.board[r][c];
+            const pieceType = gameState.board[r][c]; // そのマスに置かれている石の種類を取得
+
             if (pieceType !== PIECE.EMPTY) {
-                // 石が置かれている場合
+                // マスに石が置かれている場合、石の要素を作成してマスに追加します。
                 const piece = createPieceElement(pieceType);
                 cell.appendChild(piece);
-            } else if (!gameState.isGameOver) {
-                // 石が置かれていない、かつ、ゲームが終了していない場合
+            }
+            // マスが空で、かつゲームが終了していない場合のみ、ヒントを表示する処理を行います。
+            // クリックイベントリスナーは、イベント委譲によって一つにまとめられます。
+            // if (pieceType === PIECE.EMPTY && !gameState.isGameOver) {
+            //     const isHint = validMoves.some(move => move.r === r && move.c === c);
+            //     if (isHint) {
+            //         cell.classList.add('hint'); // 石を置けるマスにヒント用のクラスを追加
+            //     }
+            // }
+            // 上記のロジックは、イベント委譲を導入したため、ヒントのクラス追加は残しますが、イベントリスナーはここでは追加しません。
+            if (pieceType === PIECE.EMPTY && !gameState.isGameOver) {
                 const isHint = validMoves.some(move => move.r === r && move.c === c);
                 if (isHint) {
-                    cell.classList.add('hint');
-                    cell.addEventListener('click', handleCellClick);
+                    cell.classList.add('hint'); // 石を置けるマスにヒント用のクラスを追加
                 }
             }
-            boardElement.appendChild(cell);
+            
+            boardElement.appendChild(cell); // 作成したマスを盤面に追加
         }
     }
 }
 
 /**
- * 石のHTML要素を作成するヘルパー関数。
- * @param {number} player - PIECE.BLACK または PIECE.WHITE
- * @param {boolean} isNew - 新しく置かれた石かどうか（アニメーション用）
- * @returns {HTMLElement} - 作成された石のdiv要素
+ * 石のHTML要素を作成するヘルパー関数です。
+ * この関数を呼び出すことで、黒い石または白い石の見た目を持つdiv要素を簡単に生成できます。
+ * @param {number} player - 作成したい石の種類（PIECE.BLACK または PIECE.WHITE）。
+ * @param {boolean} isNew - (オプション) 新しく置かれた石かどうか。trueの場合、アニメーションが適用されます。
+ * @returns {HTMLElement} - 作成された石のdiv要素。
  */
 function createPieceElement(player, isNew = false) {
-    const piece = document.createElement('div');
-    piece.className = 'piece';
+    const piece = document.createElement('div'); // 新しいdiv要素を作成
+    piece.className = 'piece'; // 基本のCSSクラスを適用
+    // プレイヤーの種類に応じて、黒または白のクラスを追加します。
     piece.classList.add(player === PIECE.BLACK ? 'black' : 'white');
     if (isNew) {
-        piece.classList.add('newly-placed');
+        piece.classList.add('newly-placed'); // 新しく置かれた石にアニメーション用のクラスを追加
     }
-    return piece;
+    return piece; // 作成した石の要素を返します。
 }
 
 /**
- * 現在の手番やスコアなどのゲーム情報を更新する関数。
+ * 現在の手番やスコアなどのゲーム情報を更新する関数です。
+ * gameStateオブジェクトから最新の情報を取得し、HTML上の表示を更新します。
  */
 function updateGameInfo() {
-    // 手番インジケーターの更新
-    playerIndicator.className = gameState.currentPlayer === PIECE.BLACK ? 'piece black' : 'piece white';
+    // 手番インジケーターの更新:
+    // 現在のプレイヤーの色に合わせて、手番を示す石の表示を黒または白に切り替えます。
+    playerIndicator.className = 'piece ' + (gameState.currentPlayer === PIECE.BLACK ? 'black' : 'white');
 
-    // スコアの計算と更新
-    let blackScore = 0;
-    let whiteScore = 0;
-    for (let r = 0; r < gameState.boardSize; r++) {
-        for (let c = 0; c < gameState.boardSize; c++) {
-            if (gameState.board[r][c] === PIECE.BLACK) blackScore++;
-            if (gameState.board[r][c] === PIECE.WHITE) whiteScore++;
-        }
-    }
-    blackScoreElement.textContent = `⚫️ ${blackScore}`;
-    whiteScoreElement.textContent = `⚪️ ${whiteScore}`;
+    // スコアの更新:
+    // gameStateオブジェクトに保存されている現在のスコアを表示に反映します。
+    blackScoreElement.textContent = `⚫️ ${gameState.blackScore}`;
+    whiteScoreElement.textContent = `⚪️ ${gameState.whiteScore}`;
 }
 
 
-//================================================================
+// ================================================================
 // 4. ユーザー操作のハンドリング
-//================================================================
+//    ユーザーがボタンをクリックしたり、盤面を操作したりした際の処理を行う関数群です。
+// ================================================================
 
 /**
- * 盤面のセルがクリックされたときの処理を行う関数。
- * @param {Event} event - クリックイベント
+ * 盤面エリア全体がクリックされたときの処理を行う関数です。
+ * イベント委譲を利用することで、各マスに個別のイベントリスナーを設定する手間を省き、
+ * 効率的にクリックイベントを処理します。
+ * @param {Event} event - クリックイベントオブジェクト。
  */
-function handleCellClick(event) {
-    if (gameState.isGameOver) return; // ゲーム終了時は何もしない
+function handleBoardClick(event) {
+    if (gameState.isGameOver) return; // ゲーム終了時は、盤面をクリックしても何も起こりません。
 
-    const targetCell = event.currentTarget;
-    const row = parseInt(targetCell.dataset.row);
-    const col = parseInt(targetCell.dataset.col);
+    // クリックされた要素がマス（cell）であるかを確認します。
+    // event.targetはクリックされた最も内側の要素を指します。
+    // .closest('.cell')は、event.target自身またはその祖先要素の中に.cellクラスを持つものがあるかを探します。
+    const clickedCell = event.target.closest('.cell');
 
+    // もしクリックされたのがマスでなければ、何もしません。
+    if (!clickedCell) return;
+
+    // クリックされたマスから行と列のデータを取得します。
+    const row = parseInt(clickedCell.dataset.row);
+    const col = parseInt(clickedCell.dataset.col);
+
+    // そのマスに石を置いた場合に、ひっくり返せる相手の石があるかを確認します。
     const flippablePieces = getFlippablePieces(row, col, gameState.currentPlayer);
 
     if (flippablePieces.length > 0) {
-        // 石を置いてひっくり返す処理
+        // ひっくり返せる石がある（＝石を置ける場所である）場合、石を置く処理を実行します。
         placeAndFlipPieces(row, col, flippablePieces);
     } else {
-        // ルール上置けない場所なのでメッセージ表示
-        showMessage('そこには<ruby>置<rt>お</rt></ruby>けません。');
+        // ひっくり返せる石がない（＝ルール上、石を置けない場所である）場合、メッセージを表示します。
+        showMessage('そこには<ruby>置<rt>お</rt></ruby>けません。', 'error');
     }
 }
 
 
-//================================================================
+// ================================================================
 // 5. ゲーム進行のコアロジック
-//================================================================
+//    ゲームのルールに基づいて、石の配置、手番の交代、ゲームの終了判定など、
+//    ゲームの進行に関わる中心的な処理を行う関数群です。
+// ================================================================
 
 /**
- * 石を置き、指定された相手の石をひっくり返す関数。
- * @param {number} r - 石を置く行
- * @param {number} c - 石を置く列
- * @param {Array<object>} flippablePieces - ひっくり返す石の座標リスト
+ * 石を置き、指定された相手の石をひっくり返す関数です。
+ * この関数は、プレイヤーが有効なマスをクリックしたときに呼び出されます。
+ * @param {number} r - 石を置くマスの行座標。
+ * @param {number} c - 石を置くマスの列座標。
+ * @param {Array<object>} flippablePieces - ひっくり返す相手の石の座標リスト（{r, c}の配列）。
  */
 function placeAndFlipPieces(r, c, flippablePieces) {
-    clearMessage();
-    gameState.passCount = 0;
+    clearMessage(); // 以前のメッセージを消去
+    gameState.passCount = 0; // 石を置けたので、パスカウントをリセット
 
-    // 1. 新しい石を盤面に置く
+    // 1. 新しい石を盤面に置きます。
     gameState.board[r][c] = gameState.currentPlayer;
+    // 石を置いたことで、現在のプレイヤーのスコアを1増やします。
+    if (gameState.currentPlayer === PIECE.BLACK) {
+        gameState.blackScore++;
+    } else {
+        gameState.whiteScore++;
+    }
     
-    // 2. 相手の石を自分の色に変える
+    // 2. 相手の石を自分の色に変え、スコアを更新します。
     flippablePieces.forEach(p => {
-        gameState.board[p.r][p.c] = gameState.currentPlayer;
+        gameState.board[p.r][p.c] = gameState.currentPlayer; // 石の色をひっくり返す
+        // ひっくり返したことで、現在のプレイヤーのスコアを1増やし、相手のスコアを1減らします。
+        if (gameState.currentPlayer === PIECE.BLACK) {
+            gameState.blackScore++;
+            gameState.whiteScore--;
+        } else {
+            gameState.whiteScore++;
+            gameState.blackScore--;
+        }
     });
 
-    // 3. 次のプレイヤーへ手番を移す
+    // 3. 次のプレイヤーへ手番を移します。
     switchPlayer();
 }
 
-
 /**
- * 手番を交代し、ゲームの次のステップに進む関数。
+ * 手番を交代し、ゲームの次のステップに進む関数です。
+ * 石が置かれた後や、パスが発生した後などに呼び出されます。
  */
 function switchPlayer() {
+    // 現在のプレイヤーと相手のプレイヤーを入れ替えます。
     gameState.currentPlayer = (gameState.currentPlayer === PIECE.BLACK) ? PIECE.WHITE : PIECE.BLACK;
     
-    renderGame(); // 盤面を再描画
+    renderGame(); // 手番が変わったことを反映するため、画面全体を再描画します。
 
-    // ゲーム終了条件をチェック
+    // ゲームが終了したかどうかをチェックします。終了していれば、これ以上手番を進めません。
     if (checkEndGame()) return;
     
-    // 次のプレイヤーが置ける場所があるかチェック
+    // 次のプレイヤーが石を置ける場所があるか（有効な手があるか）を確認します。
     const nextValidMoves = getValidMoves(gameState.currentPlayer);
+
     if (nextValidMoves.length === 0) {
-        gameState.passCount++;
+        // もし次のプレイヤーが置ける場所が一つもない場合（パスの場合）
+        gameState.passCount++; // パスカウントを1増やします。
         const playerName = gameState.currentPlayer === PIECE.BLACK ? '黒(くろ)' : '白(しろ)';
-        showMessage(`${playerName}はパスしました。`, 'info');
-        // 1.5秒後に自動的に再度手番を交代
+        showMessage(`${playerName}は<ruby>置<rt>お</rt></ruby>ける<ruby>場所<rt>ばしょ</rt></ruby>がないため、パスしました。`, 'info');
+        
+        // 1.5秒後に自動的に再度手番を交代します。
+        // （連続パスの可能性もあるため、自分自身を再度呼び出します）
         setTimeout(() => switchPlayer(), 1500);
     }
 }
 
 /**
- * ゲームの終了条件をチェックする関数。
- * @returns {boolean} - ゲームが終了した場合はtrue
+ * ゲームの終了条件をチェックする関数です。
+ * 盤面がすべて埋まったか、両プレイヤーが連続でパスした場合にゲームは終了します。
+ * @returns {boolean} - ゲームが終了した場合はtrue、まだ続く場合はfalseを返します。
  */
 function checkEndGame() {
-    // 盤面がすべて埋まったか、両者ともパスした場合にゲーム終了
+    // 盤面に空きマスが一つもないかを確認します。
     const isBoardFull = !gameState.board.flat().includes(PIECE.EMPTY);
+
+    // 盤面がすべて埋まったか、または2回連続でパスが発生した場合、ゲーム終了です。
     if (isBoardFull || gameState.passCount >= 2) {
-        endGame();
-        return true;
+        endGame(); // ゲーム終了処理を呼び出します。
+        return true; // ゲームが終了したことを呼び出し元に伝えます。
     }
-    return false;
+    return false; // ゲームはまだ続いています。
 }
 
 /**
- * ゲームを終了させ、結果を表示する関数。
+ * ゲームを終了させ、最終的な勝敗結果を表示する関数です。
+ * ゲーム終了条件が満たされたときに呼び出されます。
  */
 function endGame() {
-    gameState.isGameOver = true;
-    boardSizeInput.disabled = false; // 設定を再度有効化
-    startButton.disabled = false;
+    gameState.isGameOver = true; // ゲーム終了フラグを立てます。
+    boardSizeInput.disabled = false; // 盤面サイズ入力フィールドを再度操作可能にします。
+    startButton.disabled = false; // スタートボタンを再度操作可能にします。
     
-    const blackScore = parseInt(blackScoreElement.textContent.replace('⚫️ ', ''));
-    const whiteScore = parseInt(whiteScoreElement.textContent.replace('⚪️ ', ''));
-
+    // 最終スコアに基づいて勝敗メッセージを作成します。
     let msg = "";
-    if (blackScore > whiteScore) {
-        msg = `🎉 <ruby>黒<rt>くろ</rt></ruby>の<ruby>勝<rt>か</rt></ruby>ち！ (${blackScore} - ${whiteScore}) 🎉`;
-    } else if (whiteScore > blackScore) {
-        msg = `🎉 <ruby>白<rt>しろ</rt></ruby>の<ruby>勝<rt>か</rt></ruby>ち！ (${whiteScore} - ${blackScore}) 🎉`;
+    if (gameState.blackScore > gameState.whiteScore) {
+        msg = `🎉 <ruby>黒<rt>くろ</rt></ruby>の<ruby>勝<rt>か</rt></ruby>ち！ (${gameState.blackScore} - ${gameState.whiteScore}) 🎉`;
+    } else if (gameState.whiteScore > gameState.blackScore) {
+        msg = `🎉 <ruby>白<rt>しろ</rt></ruby>の<ruby>勝<rt>か</rt></ruby>ち！ (${gameState.whiteScore} - ${gameState.blackScore}) 🎉`;
     } else {
-        msg = `<ruby>引<rt>ひ</rt></ruby>き<ruby>分<rt>わ</rt></ruby>けです！ (${blackScore} - ${whiteScore})`;
+        msg = `<ruby>引<rt>ひ</rt></ruby>き<ruby>分<rt>わ</rt></ruby>けです！ (${gameState.blackScore} - ${gameState.whiteScore})`;
     }
     
-    winnerMessage.innerHTML = msg; // innerHTMLを使ってrubyタグを解釈させる
-    winnerModal.style.display = 'flex';
+    winnerMessage.innerHTML = msg; // 勝敗メッセージをモーダルに表示します。（HTMLタグも含むためinnerHTMLを使用）
+    winnerModal.style.display = 'flex'; // 勝者表示モーダルを表示します。
 }
 
 
-//================================================================
+// ================================================================
 // 6. ゲームルールの判定関数
-//================================================================
+//    リバーシのルールに従って、石が置けるか、ひっくり返せるかなどを判定する関数群です。
+// ================================================================
 
 /**
- * 指定されたマスに石を置いた場合に、ひっくり返せる相手の石のリストを取得する関数。
- * @param {number} r - 石を置く行
- * @param {number} c - 石を置く列
- * @param {number} player - 現在のプレイヤー
- * @returns {Array<object>} - ひっくり返せる石の座標 {r, c} の配列
+ * 指定されたマスに石を置いた場合に、ひっくり返せる相手の石のリストを取得する関数です。
+ * この関数は、石を置くことができるかどうかを判定するためにも使用されます。
+ * @param {number} r - 石を置く候補の行座標。
+ * @param {number} c - 石を置く候補の列座標。
+ * @param {number} player - 現在のプレイヤー（PIECE.BLACK または PIECE.WHITE）。
+ * @returns {Array<object>} - ひっくり返せる石の座標 {r, c} の配列。ひっくり返せる石がない場合は空の配列を返します。
  */
 function getFlippablePieces(r, c, player) {
-    if (gameState.board[r][c] !== PIECE.EMPTY) return []; // 空きマスでなければ置けない
+    // まず、指定されたマスがすでに空でない場合（石が置かれている場合）は、そこに新しい石は置けないため、
+    // ひっくり返せる石は一つもありません。
+    if (gameState.board[r][c] !== PIECE.EMPTY) return [];
 
-    const opponent = player === PIECE.BLACK ? PIECE.WHITE : PIECE.BLACK;
-    let allFlippable = [];
+    const opponent = player === PIECE.BLACK ? PIECE.WHITE : PIECE.BLACK; // 相手プレイヤーの石の種類
+    let allFlippable = []; // ひっくり返せる石の座標を一時的に保存する配列
 
-    // 8方向をループでチェック
+    // 全ての8方向（DIRECTIONSで定義）を一つずつチェックします。
     DIRECTIONS.forEach(dir => {
-        let line = [];
-        let nr = r + dir.r;
-        let nc = c + dir.c;
+        let line = []; // 今調べている方向で見つかった相手の石のリスト
+        let nr = r + dir.r; // 現在見ているマスの行座標
+        let nc = c + dir.c; // 現在見ているマスの列座標
 
-        // 相手の石が続く限り、その座標をlineに追加
+        // 相手の石が続く限り、そのマスの座標を`line`に追加していきます。
+        // 盤面の範囲内であり、かつそのマスに相手の石が置かれている間、ループを続けます。
         while (nr >= 0 && nr < gameState.boardSize && nc >= 0 && nc < gameState.boardSize && gameState.board[nr][nc] === opponent) {
-            line.push({ r: nr, c: nc });
-            nr += dir.r;
-            nc += dir.c;
+            line.push({ r: nr, c: nc }); // 相手の石の座標を記録
+            nr += dir.r; // 次のマスへ移動
+            nc += dir.c; // 次のマスへ移動
         }
 
-        // 相手の石の先に自分の石があれば、そのlineはひっくり返せる
+        // 相手の石が途切れた後、その先に自分の石があるかを確認します。
+        // もし自分の石があれば、`line`に記録された相手の石は全てひっくり返せる対象となります。
         if (nr >= 0 && nr < gameState.boardSize && nc >= 0 && nc < gameState.boardSize && gameState.board[nr][nc] === player) {
-            allFlippable = allFlippable.concat(line);
+            allFlippable = allFlippable.concat(line); // ひっくり返せる石のリストに`line`の内容を追加
         }
     });
-    return allFlippable;
+    return allFlippable; // 最終的にひっくり返せる全ての石のリストを返します。
 }
 
 /**
- * 現在のプレイヤーが石を置けるすべての有効なマスのリストを取得する関数。
- * @param {number} player - 現在のプレイヤー
- * @returns {Array<object>} - 石を置けるマスの座標 {r, c} の配列
+ * 現在のプレイヤーが石を置けるすべての有効なマスのリストを取得する関数です。
+ * この関数は、ゲーム中にヒントを表示したり、パスを判定したりするために使用されます。
+ * @param {number} player - 現在のプレイヤー（PIECE.BLACK または PIECE.WHITE）。
+ * @returns {Array<object>} - 石を置けるマスの座標 {r, c} の配列。置けるマスがない場合は空の配列を返します。
  */
 function getValidMoves(player) {
-    const moves = [];
+    const moves = []; // 石を置ける有効なマスの座標を保存する配列
+    // 盤面の全てのマスをループ処理します。
     for (let r = 0; r < gameState.boardSize; r++) {
         for (let c = 0; c < gameState.boardSize; c++) {
+            // そのマスが空である場合のみ、石を置けるかどうかの判定を行います。
             if (gameState.board[r][c] === PIECE.EMPTY) {
+                // getFlippablePieces関数を使って、そのマスに石を置いた場合にひっくり返せる石があるかを確認します。
                 if (getFlippablePieces(r, c, player).length > 0) {
-                    moves.push({ r, c });
+                    moves.push({ r, c }); // ひっくり返せる石があれば、そのマスは有効な手なので記録します。
                 }
             }
         }
     }
-    return moves;
+    return moves; // 有効な手のリストを返します。
 }
 
 
-//================================================================
+// ================================================================
 // 7. UI操作とヘルパー関数
-//================================================================
+//    ユーザーインターフェース（画面表示）の操作や、ゲーム内で繰り返し使われる
+//    補助的な処理を行う関数群です。
+// ================================================================
 
 /**
- * メッセージエリアにテキストを表示する関数。
- * @param {string} msg - 表示するメッセージ
- * @param {string} type - 'error' (赤) or 'info' (青)
+ * メッセージエリアにテキストを表示する関数です。
+ * エラーメッセージや、ゲームの進行に関する情報などをユーザーに伝えます。
+ * @param {string} msg - 表示するメッセージの文字列。HTMLタグを含むことも可能です（例: ルビタグ）。
+ * @param {string} type - (オプション) メッセージの種類。'error'（赤色）または'info'（青色）を指定します。
+ *                        デフォルトは'error'です。
  */
 function showMessage(msg, type = 'error') {
-    messageElement.innerHTML = msg; // innerHTMLを使ってrubyタグを解釈させる
-    messageElement.className = 'message'; // classを一度リセット
+    messageElement.innerHTML = msg; // メッセージをHTMLとして表示します（ルビタグを解釈するため）。
+    messageElement.className = 'message'; // まず、メッセージ要素のクラスを「message」にリセットします。
     if (type === 'info') {
-        messageElement.classList.add('info');
+        messageElement.classList.add('info'); // タイプが「info」の場合、「info」クラスを追加して青色にします。
+    } else {
+        // デフォルトはerrorなので、明示的に'error'クラスをつけなくてもCSSで対応できるが、
+        // 将来的な拡張性のためここにelse if (type === 'error') や add('error') を追加しても良い
     }
 }
 
 /**
- * メッセージエリアのテキストを消去する関数。
+ * メッセージエリアに表示されているテキストを消去する関数です。
+ * 新しいメッセージを表示する前や、ゲームの状態が変化した後に呼び出されます。
  */
 function clearMessage() {
-    messageElement.textContent = '';
+    messageElement.textContent = ''; // テキスト内容を空にします。
+    // messageElement.className = 'message'; // クラスもリセットすると良い場合があるが、ここではテキスト消去のみ
 }
 
 
-//================================================================
-// 8. ゲーム開始
-//================================================================
+// ================================================================
+// 8. イベントリスナーの設定
+//    ウェブページが読み込まれた時や、ユーザーがボタンをクリックした時など、
+//    特定のイベントが発生した際に実行される関数（イベントハンドラ）を登録するセクションです。
+// ================================================================
 
-// スタートボタンがクリックされたらゲームを初期化
+// 「開始 / リセット」ボタンがクリックされたらゲームを初期化します。
 startButton.addEventListener('click', () => {
-    boardSizeInput.disabled = true; // ゲーム中はサイズ変更不可
-    startButton.disabled = true;
-    initializeGame();
+    boardSizeInput.disabled = true; // ゲームが始まったら、盤面サイズは変更できないようにします。
+    startButton.disabled = true; // ゲーム中は「開始 / リセット」ボタンを無効にします。
+    initializeGame(); // ゲームを初期化して開始します。
 });
 
-// 「もう一度」ボタンがクリックされたらゲームをリセット
+// 盤面全体がクリックされたときのイベントを監視します。（イベント委譲）
+// 個々のマスではなく、盤面全体にリスナーを設定することで、パフォーマンスを向上させています。
+boardElement.addEventListener('click', handleBoardClick);
+
+// モーダル内の「もう一度」ボタンがクリックされたらゲームをリセットします。
 playAgainBtn.addEventListener('click', resetGame);
 
-// ページが読み込まれたときに、最初のゲームをセットアップ
+// ウェブページが完全に読み込まれたときに、最初のゲームをセットアップします。
+// これにより、ページを開いた瞬間にゲームがプレイ可能な状態になります。
 document.addEventListener('DOMContentLoaded', () => {
     initializeGame();
 });
