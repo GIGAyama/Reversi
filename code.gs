@@ -1,24 +1,28 @@
 /**
- * WebアプリケーションにGETリクエストでアクセスされたときに実行されるメイン関数。
- * index.htmlをクライアントに返し、Webページの体裁を整えます。
- * @param {object} e - Google Apps Scriptから渡されるイベントオブジェクト。
- * @returns {HtmlOutput} - ブラウザに表示するためのHTMLオブジェクト。
+ * @file Code.gs
+ * @overview Google Apps Scriptのサーバーサイドコード。Webアプリケーションとしてのリバーシゲームの基本的な公開設定を提供します。
+ *           このファイルは、主にWebアプリの動作環境を設定するために使用され、ゲームのロジック自体はindex.html内のJavaScriptで完結しています。
+ *           先生方が直接編集する必要はほとんどありません。
  */
-function doGet(e) {
-  // HtmlServiceを使用して、index.htmlファイルからHTMLテンプレートを作成します。
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate() // テンプレートを評価して、スクリプトレット（<? ... ?>）を実行します。
-    .setTitle('リバーシ') // Webページのタイトルを設定します。
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0'); // スマホ表示対応のため、viewportを設定します。
-}
 
 /**
- * HTMLテンプレート内で他のHTMLファイル（このアプリではCSSファイル）をインクルードするためのヘルパー関数。
- * これにより、コードを複数のファイルに分割して管理しやすくなります。
- * @param {string} filename - インクルードしたいファイルの名前。
- * @returns {string} - 指定されたファイルの中身（テキストコンテンツ）。
+ * WebアプリケーションにGETリクエスト（ブラウザからのアクセス）があったときに実行されるメイン関数です。
+ * Google Apps ScriptのWebアプリでは、このdoGet関数がユーザーからの最初のアクセスポイントとなります。
+ * この関数は、ブラウザに表示するHTMLコンテンツを生成して返します。
+ *
+ * @param {object} e - Google Apps Scriptから渡されるイベントオブジェクト。
+ *                     GETリクエストに関する様々な情報（URLパラメータなど）が含まれますが、
+ *                     このアプリでは特に使用していません。
+ * @returns {HtmlOutput} - ブラウザに表示するためのHTMLコンテンツを含むオブジェクト。
+ *                         ここでの設定により、Webページがどのように表示されるかが決まります。
  */
-function include(filename) {
-  // 指定されたファイル名からHTMLOutputオブジェクトを作成し、その内容を文字列として返します。
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+function doGet(e) {
+  // HtmlService.createTemplateFromFile('index')
+  //   - プロジェクト内の「index.html」ファイルをHTMLテンプレートとして読み込みます。
+  //   - index.htmlにはゲームのHTML構造、CSSスタイル、JavaScriptロジックが全て含まれています。
+  return HtmlService.createTemplateFromFile('index')
+    .evaluate() // テンプレートを評価し、HTMLファイル内のスクリプトレット（もしあれば）を実行して最終的なHTMLを生成します。
+    .setTitle('リバーシ') // ブラウザのタブやウィンドウに表示されるページのタイトルを設定します。
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0'); // レスポンシブデザインのためのviewport設定。
+                                                                   // これにより、スマートフォンなどの小さい画面でも適切な表示になります。
 }
