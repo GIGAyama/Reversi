@@ -1,3 +1,115 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.viewport-container {
+  box-sizing: border-box;
+  min-height: 100svh;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+/* Override the legacy fixed viewport calculation so the board uses the
+   actual remaining area on phones, tablets, landscape screens and PWAs. */
+main .grid.aspect-square {
+  width: min(100%, calc(100dvh - 246px)) !important;
+  max-width: min(100%, calc(100dvh - 246px)) !important;
+  max-height: calc(100dvh - 246px);
+  contain: layout paint;
+  user-select: none;
+}
+
+main .grid.aspect-square > div {
+  min-width: 0;
+  min-height: 0;
+  touch-action: manipulation;
+}
+
+@media (max-height: 700px) {
+  main {
+    padding-block: 0.25rem !important;
+  }
+
+  main .grid.aspect-square {
+    width: min(100%, calc(100dvh - 214px)) !important;
+    max-width: min(100%, calc(100dvh - 214px)) !important;
+    max-height: calc(100dvh - 214px);
+  }
+
+  footer {
+    display: none !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  header {
+    height: 48px !important;
+  }
+
+  main > div {
+    max-width: 100% !important;
+  }
+
+  main .grid.aspect-square {
+    width: min(62vw, calc(100dvh - 126px)) !important;
+    max-width: min(62vw, calc(100dvh - 126px)) !important;
+    max-height: calc(100dvh - 126px);
+  }
+}
+
+@media (min-width: 900px) and (min-height: 700px) {
+  main .grid.aspect-square {
+    width: min(72vh, 680px, 100%) !important;
+    max-width: min(72vh, 680px, 100%) !important;
+    max-height: min(72vh, 680px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

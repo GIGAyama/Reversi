@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="リバーシ">
+  <rect width="512" height="512" rx="112" fill="#006400"/>
+  <rect x="48" y="48" width="416" height="416" rx="64" fill="#087f23" stroke="#004d00" stroke-width="16"/>
+  <g stroke="#004d00" stroke-width="5" opacity=".65">
+    <path d="M152 56v400M256 56v400M360 56v400M56 152h400M56 256h400M56 360h400"/>
+  </g>
+  <circle cx="204" cy="204" r="72" fill="#171717" stroke="#000" stroke-width="10"/>
+  <circle cx="308" cy="308" r="72" fill="#fff" stroke="#d6d6d6" stroke-width="10"/>
+  <circle cx="180" cy="180" r="18" fill="#fff" opacity=".22"/>
+  <circle cx="284" cy="284" r="18" fill="#fff" opacity=".72"/>
+</svg>
