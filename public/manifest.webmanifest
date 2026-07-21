@@ -12,9 +12,9 @@
   "categories": ["games", "education"],
   "icons": [
     {
-      "src": "./favicon.png",
+      "src": "./icon.svg",
       "sizes": "any",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
