@@ -1,0 +1,21 @@
+{
+  "name": "リバーシ - Reversi",
+  "short_name": "リバーシ",
+  "description": "スマートフォン、タブレット、Chromebookで快適に遊べるリバーシゲーム",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff9c4",
+  "theme_color": "#006400",
+  "categories": ["games", "education"],
+  "icons": [
+    {
+      "src": "./favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
