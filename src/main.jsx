@@ -9,10 +9,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 )
 
-if ('serviceWorker' in navigator) {
+// Service Worker は本番ビルドのみ登録する（開発時にキャッシュが邪魔しないように）
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const serviceWorkerUrl = new URL('../sw.js', import.meta.url)
-    navigator.serviceWorker.register(serviceWorkerUrl, { scope: './' }).catch((error) => {
+    const serviceWorkerUrl = `${import.meta.env.BASE_URL}sw.js`
+    navigator.serviceWorker.register(serviceWorkerUrl).catch((error) => {
       console.warn('Service worker registration failed:', error)
     })
   })
