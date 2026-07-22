@@ -15,25 +15,26 @@ const DIRECTIONS = [
 ];
 
 // --- 紙吹雪エフェクト用コンポーネント ---
-const Confetti = () => {
-  const colors = ['#fce18a', '#ff726d', '#b48def', '#f4306d', '#4a90e2', '#00ca4e'];
+const CONFETTI_COLORS = ['#fce18a', '#ff726d', '#b48def', '#f4306d', '#4a90e2', '#00ca4e'];
+
+const Confetti = React.memo(() => {
+  // マウント時に一度だけ生成し、親の再レンダーで紙吹雪が再配置されないようにする
+  const [pieces] = useState(() =>
+    Array.from({ length: 60 }, () => ({
+      left: `${Math.random() * 100}%`,
+      backgroundColor: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      animationDelay: `${Math.random() * 2}s`,
+      animationDuration: `${2 + Math.random() * 3}s`,
+    }))
+  );
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-[2000]">
-      {Array.from({ length: 60 }).map((_, i) => (
-        <div 
-          key={i} 
-          className="absolute w-3 h-3 rounded-sm animate-confetti"
-          style={{
-            left: `${Math.random() * 100}%`,
-            backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-            animationDelay: `${Math.random() * 2}s`,
-            animationDuration: `${2 + Math.random() * 3}s`
-          }}
-        />
+      {pieces.map((style, i) => (
+        <div key={i} className="absolute w-3 h-3 rounded-sm animate-confetti" style={style} />
       ))}
     </div>
   );
-};
+});
 
 export default function App() {
   // --- 状態管理 (State) ---
@@ -62,7 +63,13 @@ export default function App() {
   // --- Web Audio API (効果音生成) ---
   const initAudio = () => {
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      audioCtxRef.current = new AudioCtx();
+    }
+    // モバイルではユーザー操作まで suspended になるため、操作のたびに再開を試みる
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume().catch(() => {});
     }
   };
 
@@ -141,8 +148,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 盤面サイズは state ではなく渡された盤面自体から取得する
+  // （サイズ変更直後に古い boardSize を参照して範囲外アクセスするのを防ぐ）
   const getFlippablePieces = (currentBoard, r, c, player) => {
     if (currentBoard[r][c] !== PIECE.EMPTY) return [];
+    const size = currentBoard.length;
     const opponent = player === PIECE.BLACK ? PIECE.WHITE : PIECE.BLACK;
     let allFlippable = [];
 
@@ -151,13 +161,13 @@ export default function App() {
       let nr = r + dir.r;
       let nc = c + dir.c;
 
-      while (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && currentBoard[nr][nc] === opponent) {
+      while (nr >= 0 && nr < size && nc >= 0 && nc < size && currentBoard[nr][nc] === opponent) {
         line.push({ r: nr, c: nc });
         nr += dir.r;
         nc += dir.c;
       }
 
-      if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && currentBoard[nr][nc] === player) {
+      if (nr >= 0 && nr < size && nc >= 0 && nc < size && currentBoard[nr][nc] === player) {
         allFlippable = allFlippable.concat(line);
       }
     });
@@ -166,16 +176,17 @@ export default function App() {
 
   const calculateValidMoves = useCallback((currentBoard, player) => {
     if (!currentBoard || currentBoard.length === 0) return [];
+    const size = currentBoard.length;
     const moves = [];
-    for (let r = 0; r < boardSize; r++) {
-      for (let c = 0; c < boardSize; c++) {
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
         if (currentBoard[r][c] === PIECE.EMPTY && getFlippablePieces(currentBoard, r, c, player).length > 0) {
           moves.push({ r, c });
         }
       }
     }
     return moves;
-  }, [boardSize]);
+  }, []);
 
   const handleCellClick = (r, c) => {
     if (isGameOver || isWaiting || board[r][c] !== PIECE.EMPTY) return;
@@ -286,13 +297,11 @@ export default function App() {
       style={{ fontFamily: "'Zen Maru Gothic', sans-serif" }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
-        
         /* 動的な画面高さに対応してはみ出さないようにする */
         .viewport-container {
           height: 100vh;
           height: 100dvh;
-          width: 100vw;
+          width: 100%;
         }
 
         /* GIGA山風 ポルカドット背景 */
@@ -380,10 +389,10 @@ export default function App() {
 
       {/* メインコンテンツエリア（ここが伸縮して画面に収まる） */}
       <main className="flex-1 w-full min-h-0 overflow-hidden flex justify-center items-center p-2">
-        <div className="w-full max-w-[800px] h-full flex flex-col justify-center z-10 gap-2">
+        <div className="game-layout w-full max-w-[800px] h-full flex flex-col justify-center z-10 gap-2">
           
           {/* ゲーム情報（手番・スコア・優勢メーター） */}
-          <div className="flex flex-col bg-white/75 p-2 md:p-3 rounded-2xl shadow-sm border-2 border-dashed border-gray-300 w-full shrink-0">
+          <div className="info-panel flex flex-col bg-white/75 p-2 md:p-3 rounded-2xl shadow-sm border-2 border-dashed border-gray-300 w-full shrink-0">
             <div className="flex justify-around items-center w-full">
               <div className="flex flex-col items-center gap-1">
                 <span className="font-bold text-xs text-gray-500"><ruby>手番<rt>てばん</rt></ruby></span>
@@ -404,13 +413,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* リバーシ盤面（自動伸縮して正方形を保つ） */}
-          <div className="flex-1 w-full min-h-0 flex justify-center items-center my-1 md:my-2">
-            <div 
-              className="bg-[#006400] p-1.5 md:p-2.5 rounded-[15px] md:rounded-[20px] shadow-[0_5px_0_#004d00,0_10px_15px_rgba(0,0,0,0.2)] grid aspect-square mx-auto"
-              style={{ 
-                width: '100%',
-                maxWidth: 'min(100%, calc(100vh - 280px))',
+          {/* リバーシ盤面（残り領域いっぱいに自動伸縮して正方形を保つ） */}
+          <div className="board-area flex-1 w-full min-h-0 flex justify-center items-center my-1 md:my-2">
+            <div
+              className="board-grid bg-[#006400] p-1.5 md:p-2.5 rounded-[15px] md:rounded-[20px] shadow-[0_5px_0_#004d00,0_10px_15px_rgba(0,0,0,0.2)] grid aspect-square mx-auto"
+              style={{
                 gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${boardSize}, minmax(0, 1fr))`
               }}
@@ -454,7 +461,7 @@ export default function App() {
           </div>
 
           {/* コントロール（設定・待った）とメッセージ */}
-          <div className="shrink-0 flex flex-col items-center gap-1 mt-1">
+          <div className="control-panel shrink-0 flex flex-col items-center gap-1 mt-1">
             <div className="flex flex-wrap justify-center items-center gap-2 bg-white/75 p-2 md:p-3 rounded-2xl shadow-sm w-full">
               <div className="flex items-center gap-1 mr-1">
                 <label htmlFor="board-size" className="font-bold text-gray-700 text-sm"><ruby>盤面<rt>ばんめん</rt></ruby>:</label>
