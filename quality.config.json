@@ -1,0 +1,15 @@
+{
+  "repoName": "Reversi",
+
+  "maxFileLines": 5000,
+  "maxFileKb": 400,
+  "maxInitialJsKb": 300,
+  "maxImageKb": 150,
+  "maskableMaxOutsidePercent": 0.2,
+
+  "_comment": [
+    "GIGA Standard v5 Part I §8 の性能目標をそのまま置いている。",
+    "repoName は manifest の id/scope/start_url の検査に使う。",
+    "リポジトリをコピーして新しいアプリを作るときは、ここを最初に書き換える。"
+  ]
+}
