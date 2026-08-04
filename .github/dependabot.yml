@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # 依存の更新は月1回にまとめる。校内で使うアプリなので、
+  # 頻繁な更新PRより「まとめて確認して一度に当てる」ほうが運用しやすい。
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    # メジャー更新は自動では出さない。ビルドが通っても表示や挙動が変わることがあり、
+    # 学校で使っている最中に壊れると授業が止まるため、人が判断して上げる。
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 秘密情報・デプロイ設定（コミットしない）
+.clasp.json
+.env
+.env.*
+!.env.example
