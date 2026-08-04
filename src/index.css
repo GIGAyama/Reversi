@@ -2,11 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================================================
+   このファイルは GIGA Standard v5 Part I §2 の「表示のきれいさ」を担う正本。
+   以前は App.jsx の中に <style> を直書きしていたが、
+   ・React が再描画のたびに <style> を差し替える無駄がある
+   ・CSP を入れる段で必ず外へ出し直すことになる
+   の2点から、CSS は最初からここに集約する。
+   =========================================================================== */
+
 :root {
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;
+
+  /* --- セーフエリア（ノッチ・ホームバー・丸角） §2-3 --- */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+
+  /* --- 文字サイズ（fluid type） §2-4 ---
+     320px のスマホでも 4K の電子黒板でも読める大きさへ自動で寄せる。
+     メディアクエリを何段も書かずに clamp() 1本で決める。 */
+  --fs-small: clamp(11px, 0.8vw + 9px, 14px);
+  --fs-body: clamp(13px, 1.1vw + 10px, 16px);
+  --fs-title: clamp(17px, 1.6vw + 12px, 26px);
+  --fs-score: clamp(17px, 1.6vw + 12px, 26px);
+  --fs-message: clamp(14px, 1.2vw + 11px, 19px);
+
+  /* --- 配色 §2-8 ---
+     「面用」と「文字用」を分ける。明るい色をそのまま文字色に使わない。
+     ここに並べた値は、すべて実ブラウザで比を測って決めている。 */
+  --c-blue: #1967d2;      /* 面・文字の両方で 5.0 以上を確保できる青（#1a73e8 は 4.27 で届かない） */
+  --c-blue-d: #0a58ca;    /* 白～淡色の面に載せる文字用の青 */
+  --c-danger: #b02a37;    /* エラー文（#d9534f は 3.70 で届かない） */
+  --c-ink: #5d4037;       /* 本文の茶。黄色の面の上でも 6.1 出る */
+  --c-accent: #ffca28;    /* 黄色の面。ここに白文字は載せない（1.53 になる） */
+  --c-board: #006400;
+  --c-board-line: #004d00;
 }
 
 html,
@@ -21,10 +55,26 @@ body,
 }
 
 body {
-  min-height: 100vh;
+  /* §2-2 モバイルのアドレスバー分だけはみ出すため 100vh は単独で使わない */
   min-height: 100dvh;
+  font-size: var(--fs-body);
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
+  /* §2-7 学校のフィルタリングで Web フォントが届かなくても字が崩れないよう、
+     端末側の日本語フォントを必ず後ろに並べる。 */
+  font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic UI",
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+}
+
+@supports not (height: 100dvh) {
+  body {
+    min-height: 100vh;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 button,
@@ -32,19 +82,66 @@ input {
   font: inherit;
 }
 
+/* §2-9 タップ領域 44px。ボタンは素直に確保できる */
 button {
   min-width: 44px;
   min-height: 44px;
   touch-action: manipulation;
 }
 
+/* 盤面サイズの入力欄。input は疑似要素を持てないので、
+   §2-9 の ::after で当たり判定だけ広げる手が使えない。高さそのものを確保する。 */
+input[type="number"] {
+  min-height: 44px;
+}
+
+/* §2-9 詰めて組んである場所では、要素を大きくすると折り返しが起きる。
+   疑似要素で「当たり判定だけ」を 44px に広げる。 */
+.tap-44 {
+  position: relative;
+}
+
+.tap-44::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
 .viewport-container {
   box-sizing: border-box;
-  min-height: 100svh;
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
+  /* §2-2 dvh を先に書き、@supports で古い端末を受ける */
+  height: 100dvh;
+  width: 100%;
+  padding-top: var(--safe-t);
+  padding-right: var(--safe-r);
+  padding-bottom: var(--safe-b);
+  padding-left: var(--safe-l);
+}
+
+@supports not (height: 100dvh) {
+  .viewport-container {
+    height: 100vh;
+  }
+}
+
+/* GIGA山風 ポルカドット背景 */
+.bg-polka {
+  background-color: #fff9c4;
+  background-image: radial-gradient(#ffe082 20%, transparent 20%),
+    radial-gradient(#ffe082 20%, transparent 20%);
+  background-size: 50px 50px;
+  background-position: 0 0, 25px 25px;
 }
 
 /* --- 盤面のサイズ調整 ---
@@ -72,6 +169,126 @@ button {
   min-width: 0;
   min-height: 0;
   touch-action: manipulation;
+}
+
+/* 盤面のマスは、キーボードでも「置ける場所」だけを順に辿れるようにしてある。
+   焦点が当たっていることが緑の上でも分かるよう、内側に白い枠を出す。 */
+.board-grid > div:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px var(--c-blue);
+}
+
+/* --- ボタンの動き --- */
+.pop-btn {
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.pop-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15) !important;
+}
+
+.pop-btn:active:not(:disabled) {
+  transform: scale(0.92) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+@keyframes placePiece {
+  from {
+    transform: scale(0.5);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.newly-placed {
+  animation: placePiece 0.3s ease-out;
+}
+
+@keyframes flipPiece {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.1);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.flipping-animation {
+  animation: flipPiece 0.4s ease-in-out;
+}
+
+@keyframes confettiDrop {
+  0% {
+    transform: translateY(-10dvh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110dvh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confettiDrop linear infinite forwards;
+}
+
+.piece-gradient {
+  background-image: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.3),
+    rgba(0, 0, 0, 0.3)
+  );
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.4), 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* --- ふりがな（ルビ） §4 ---
+   ⚠️ rt の色を決め打ちしてはいけない。
+   色のついたボタンの上に #8d6e63 のふりがなを重ねていたため、
+   「開始/リセット」で比 1.03、「待った！」で 1.68 しか出ていなかった。
+   ふりがなが要るのは低学年の児童なので、
+   いちばん読めなくて困る人が、いちばん読めない形になっていた。
+   1か所ずつ潰さず、色のついた面ではまとめて親の色を継がせる。 */
+ruby {
+  font-family: inherit;
+}
+
+rt {
+  font-size: 0.65em;
+  color: #5f6368; /* 白～淡色の地での既定値 */
+  font-weight: 500;
+  user-select: none;
+}
+
+button rt,
+a rt,
+.badge rt,
+[class*="bg-"] rt,
+[class*="btn"] rt,
+[class*="text-white"] rt {
+  color: inherit;
 }
 
 /* 低い画面ではフッターを隠して盤面に領域を回す */
@@ -138,6 +355,10 @@ button {
   }
 }
 
+/* §2-10 動きの配慮。
+   ⚠️ .01ms であって 0 ではない。0 にすると animation-fill-mode: forwards が
+   効かなくなり、slideIn で出しているモーダルが opacity:0 のまま消える。
+   「動きを止める」つもりが「中身を消す」ことになる。 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -146,5 +367,24 @@ button {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* §2-8 ハイコントラストモード。
+   背景色が無効化されても「押せる」と分かるよう枠を出す。
+   盤面の石は背景色だけで白黒を表しているので、枠で区別が付くようにする。 */
+@media (forced-colors: active) {
+  button,
+  .pop-btn {
+    border: 2px solid ButtonText;
+  }
+
+  .board-grid > div {
+    border: 1px solid CanvasText;
+  }
+
+  .piece-gradient {
+    border: 2px solid CanvasText;
+    forced-color-adjust: none;
   }
 }

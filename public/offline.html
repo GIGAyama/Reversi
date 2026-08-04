@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1967d2" />
+    <meta name="color-scheme" content="light" />
+    <title>インターネットに つながっていません - リバーシ</title>
+    <!--
+      この画面は「ネットにつながらず、アプリ本体も手元にない」ときに出る。
+      だから外部の資産にも JavaScript にも一切頼らない。
+      CSS も文字も自前で持ち、読み込み直しは <a href> で行う。
+      （インラインの onclick は CSP に引っかかるので使わない）
+    -->
+    <style>
+      :root {
+        --safe-t: env(safe-area-inset-top, 0px);
+        --safe-b: env(safe-area-inset-bottom, 0px);
+        --safe-l: env(safe-area-inset-left, 0px);
+        --safe-r: env(safe-area-inset-right, 0px);
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-width: 320px;
+      }
+
+      body {
+        /* アプリ本体と同じ配色・同じフォント。別のサイトに来たと思わせない。 */
+        min-height: 100dvh;
+        box-sizing: border-box;
+        padding: calc(24px + var(--safe-t)) calc(20px + var(--safe-r))
+          calc(24px + var(--safe-b)) calc(20px + var(--safe-l));
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #5d4037;
+        background-color: #fff9c4;
+        background-image: radial-gradient(#ffe082 20%, transparent 20%),
+          radial-gradient(#ffe082 20%, transparent 20%);
+        background-size: 50px 50px;
+        background-position: 0 0, 25px 25px;
+        font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic UI",
+          "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+        line-height: 1.8;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+
+      @supports not (min-height: 100dvh) {
+        body {
+          min-height: 100vh;
+        }
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 4px solid #ffca28;
+        border-radius: 20px;
+        padding: 28px 24px;
+        max-width: 420px;
+        width: 100%;
+        box-sizing: border-box;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .pieces {
+        font-size: clamp(36px, 12vw, 64px);
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(19px, 4.5vw, 26px);
+        color: #0a58ca;
+      }
+
+      p {
+        margin: 0 0 20px;
+        font-size: clamp(14px, 3.4vw, 17px);
+      }
+
+      rt {
+        font-size: 0.65em;
+        color: #5f6368;
+      }
+
+      a.retry {
+        display: inline-block;
+        /* タップ領域 44px を確保する */
+        min-width: 44px;
+        min-height: 44px;
+        box-sizing: border-box;
+        padding: 12px 28px;
+        border-radius: 999px;
+        background: #1967d2;
+        color: #fff;
+        font-weight: 700;
+        font-size: clamp(15px, 3.6vw, 18px);
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      a.retry rt {
+        color: inherit;
+      }
+
+      a.retry:focus-visible {
+        outline: 3px solid #0a58ca;
+        outline-offset: 3px;
+      }
+
+      @media (forced-colors: active) {
+        a.retry {
+          border: 2px solid ButtonText;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="pieces" aria-hidden="true">⚪️⚫️</div>
+      <h1>いま インターネットに つながっていません</h1>
+      <p>
+        Wi-Fi が つながってから、もういちど ひらいてください。
+      </p>
+      <a class="retry" href="./index.html">もういちど ひらく</a>
+    </div>
+  </body>
+</html>
