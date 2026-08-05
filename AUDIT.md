@@ -230,6 +230,21 @@ Part I の検査 **27件**を `scripts/lib/giga-v5-checks.mjs` に置いてい�
 
 同じ理由で `RT_HARDCODED` も「ファイルごとに見る」形へ直しています。
 
+### 手元では通るのに CI だけ落ちた件
+
+テストの実行を `node --test "tests/**/*.test.js"` と書いていました。
+これは **Node 自身にグロブを展開させる書き方で、Node 22 以降でしか動きません。**
+手元が Node 22、CI のランナーが Node 20 だったため、
+**手元では 14件通るのに CI だけが `Could not find 'tests/**/*.test.js'` で落ちました。**
+
+`scripts/run-tests.mjs` がファイルを自分で数え上げて渡す形に変え、
+版にもシェルにも依存しないようにしています。
+**Node 20.20.2（CI と同じ版）と Node 22.22.2 の両方で `npm run check` と
+`npm run verify-gate` が通ることを確認済みです。**
+あわせて、GitHub が非推奨にした Node 20 からランナーを 22 に上げました。
+
+「手元で通ったから大丈夫」は、実行環境が違えば成り立ちません。
+
 ### 正本について（未取得）
 
 §P4 は `scripts/lib/project-quality.mjs`（フリート共通の検査の正本）を
