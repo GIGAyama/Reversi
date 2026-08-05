@@ -3,35 +3,46 @@
   "short_name": "リバーシ",
   "description": "スマートフォン、タブレット、Chromebookで快適に遊べるリバーシゲーム",
   "lang": "ja",
-  "id": "./",
-  "start_url": "./",
-  "scope": "./",
+  "dir": "ltr",
+
+  "id": "/Reversi/",
+  "start_url": "/Reversi/",
+  "scope": "/Reversi/",
+
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "launch_handler": { "client_mode": ["navigate-existing", "auto"] },
   "orientation": "any",
   "background_color": "#fff9c4",
-  "theme_color": "#006400",
+  "theme_color": "#1967d2",
   "categories": ["games", "education"],
   "icons": [
     {
-      "src": "./icon.svg",
+      "src": "/Reversi/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "./icon-192.png",
+      "src": "/Reversi/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png",
+      "src": "/Reversi/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-maskable-512.png",
+      "src": "/Reversi/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/Reversi/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

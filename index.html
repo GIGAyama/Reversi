@@ -2,17 +2,74 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Content-Security-Policy。
+
+      ⚠️ frame-ancestors はここには書かない。
+         <meta> で配ると無視され、読み込みのたびにコンソールへ警告が出るだけになる。
+         他サイトへの埋め込みを止めるには HTTP ヘッダーが要るが、
+         GitHub Pages では足せない。
+         独自ドメインや CDN を挟む構成にするときは、そちら側で
+         Content-Security-Policy: frame-ancestors 'self' を設定すること。
+
+      ⚠️ script-src は 'self' のみ。'unsafe-inline' は足さない。
+         足すと CSP を入れた意味がほとんど無くなる。
+         そのため本体の JavaScript もインストールの捕捉も、すべて外部ファイルにしてある。
+
+      style-src に 'unsafe-inline' が要るのは、React が style 属性で
+      盤面のマス割りやアニメーションの遅延を渡しているためで、
+      これはインラインの <script> を許すこととは危険度が違う。
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: blob:;
+        connect-src 'self';
+        worker-src 'self';
+        manifest-src 'self';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+      "
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#006400" />
+    <meta name="theme-color" content="#1967d2" />
+    <meta name="color-scheme" content="light" />
     <meta name="description" content="スマートフォン、タブレット、Chromebookで快適に遊べるリバーシゲーム" />
+
+    <!--
+      インストールの合図をいちばん先に受け取る。
+      React の読み込みより後ろだと、通信が遅い端末で beforeinstallprompt を
+      取りこぼし、「アプリにする」ボタンが出なくなる。
+    -->
+    <script src="/Reversi/install-hook.js"></script>
+
+    <link rel="manifest" href="/Reversi/manifest.webmanifest" />
+
+    <link rel="icon" type="image/svg+xml" href="/Reversi/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/Reversi/icon-192.png" />
+    <!--
+      ⚠️ apple-touch-icon には透明を含む画像を指さない。
+         iOS は透明部分を黒で埋めるため、ホーム画面でアイコンの四隅だけが黒く出る。
+         icon-192.png は角丸の外が透明なので、流用してはいけない。
+         apple-touch-icon.png は透明を持たない専用画像（180×180）。
+    -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/Reversi/apple-touch-icon.png" />
+
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="リバーシ" />
-    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-    <link rel="manifest" href="./manifest.webmanifest" />
+
+    <!--
+      Web フォントは「止まっても字の形が変わるだけ」なので CDN のままでよい。
+      学校のフィルタリングで塞がれても動くよう、端末側の日本語フォントを
+      src/index.css の font-family で必ず後ろに並べてある。
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -24,6 +81,6 @@
   <body>
     <noscript>このゲームを遊ぶにはJavaScriptを有効にしてください。</noscript>
     <div id="root"></div>
-    <script type="module" src="./src/main.jsx"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
