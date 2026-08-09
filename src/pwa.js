@@ -21,10 +21,20 @@ function showUpdateToast(onAccept) {
   bar.id = TOAST_ID;
   bar.setAttribute('role', 'status');
   bar.setAttribute('aria-live', 'polite');
+  /*
+   * ⚠️ 横位置を left:50% + translateX(-50%) で取ってはいけない。
+   *    位置を固定した箱に幅の指定が無いと、幅は「左端から画面の右端まで」を
+   *    上限に縮む。左端を 50% に置いた時点で上限が画面の半分になり、
+   *    max-width の 460px が効かない。
+   *    390px の端末では帯が 195px まで縮み、文言の側が幅 0 になって
+   *    「あ／た／ら／し／い」と1文字ずつ縦に並んだ。
+   *    左右の両方を指定して margin を auto にすると、画面の幅を基準に中央へ置ける。
+   */
   bar.style.cssText = [
-    'position:fixed', 'left:50%', 'transform:translateX(-50%)',
+    'position:fixed', 'left:12px', 'right:12px', 'margin-inline:auto',
     'bottom:calc(12px + env(safe-area-inset-bottom, 0px))',
-    'z-index:5000', 'display:flex', 'align-items:center', 'gap:12px',
+    'z-index:5000', 'display:flex', 'flex-wrap:wrap',
+    'align-items:center', 'justify-content:flex-end', 'gap:12px',
     'max-width:min(92vw, 460px)', 'box-sizing:border-box',
     'padding:12px 14px', 'border-radius:14px',
     'background:#ffffff', 'border:3px solid #ffca28',
@@ -36,7 +46,8 @@ function showUpdateToast(onAccept) {
 
   const text = document.createElement('span');
   text.textContent = 'あたらしい ばんが あります';
-  text.style.cssText = 'flex:1;min-width:0';
+  // 文言は必ず1行ぶんを丸ごと使う。狭い画面ではボタンが下の段へ回る
+  text.style.cssText = 'flex:1 1 100%;min-width:0';
 
   const accept = document.createElement('button');
   accept.type = 'button';
