@@ -225,10 +225,18 @@ export function runGigaChecks(root, config) {
     fail('MANIFEST_MISSING', 'manifest.webmanifest が無い', manifestPath);
   } else {
     const m = JSON.parse(manifestSrc);
+    // 正しい値は「どこで配信するか」で変わる。
+    // 独自ドメイン（CNAME あり）だとアプリは reversi.giga-school.com の直下に置かれる。
+    // ここで /Reversi/ のままにすると scope がページの URL を含まなくなり、
+    // manifest ごと無視されて PWA としてインストールできなくなる。
+    // CNAME が無ければ従来どおり共有オリジンのサブディレクトリ配信なので、
+    // リポジトリ名の絶対パスでないと同居する別アプリと取り違えられる。
+    const hasCname = existsSync(join(root, 'CNAME')) || existsSync(join(root, 'public', 'CNAME'));
+    const wantBase = hasCname ? './' : `/${repo}/`;
     for (const key of ['id', 'scope', 'start_url']) {
-      if (m[key] !== `/${repo}/`) {
+      if (m[key] !== wantBase) {
         fail('MANIFEST_PATH',
-          `manifest の ${key} が "/${repo}/" ではない（同一オリジンの別アプリと取り違えられる）`,
+          `manifest の ${key} が "${wantBase}" ではない（配信場所と食いちがうとインストールできない）`,
           `${key}=${JSON.stringify(m[key])}`);
       }
     }

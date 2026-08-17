@@ -118,11 +118,13 @@ const MUTATIONS = [
   }],
 
   ['install-hook.js を外す', 'INSTALL_HOOK', (d) => {
-    patch(join(d, 'index.html'), (s) => s.replace('<script src="/Reversi/install-hook.js"></script>', ''));
+    patch(join(d, 'index.html'), (s) => s.replace('<script src="./install-hook.js"></script>', ''));
   }],
 
-  ['manifest の id を "./" に戻す', 'MANIFEST_PATH', (d) => {
-    patch(join(d, 'public', 'manifest.webmanifest'), (s) => s.replace('"id": "/Reversi/"', '"id": "./"'));
+  // "./" は独自ドメインでの正しい値なので、もう壊れた形ではない。
+  // いまの壊れ方は、サブドメイン直下で配信するのにリポジトリ名の絶対パスが残っていること。
+  ['manifest の id をリポジトリ名の絶対パスに戻す', 'MANIFEST_PATH', (d) => {
+    patch(join(d, 'public', 'manifest.webmanifest'), (s) => s.replace('"id": "./"', '"id": "/Reversi/"'));
   }],
 
   ['maskable アイコンを外す', 'MANIFEST_MASKABLE', (d) => {

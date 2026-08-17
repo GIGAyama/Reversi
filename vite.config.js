@@ -41,7 +41,7 @@ export default defineConfig({
   // gigayama.github.io は数十個のアプリで同一オリジンを共有している。
   // manifest の id/scope/start_url をリポジトリ名の絶対パスに固定するため、
   // base も './' ではなくリポジトリ名の絶対パスにそろえる。
-  base: '/Reversi/',
+  base: './',
 
   build: {
     // ⚠️ modulePreload のポリフィルはインラインの <script> として差し込まれる。
