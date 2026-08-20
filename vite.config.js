@@ -38,7 +38,7 @@ function injectPrecacheAssets() {
 export default defineConfig({
   plugins: [react(), injectPrecacheAssets()],
 
-  // gigayama.github.io は数十個のアプリで同一オリジンを共有している。
+  // 旧配信元の gigayama.github.io は数十個のアプリで同一オリジンを共有していた。
   // manifest の id/scope/start_url をリポジトリ名の絶対パスに固定するため、
   // base も './' ではなくリポジトリ名の絶対パスにそろえる。
   base: './',
