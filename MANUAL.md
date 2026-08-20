@@ -2,7 +2,7 @@
 
 専門知識は要りません。ブラウザだけで動きます。
 
-**開く場所** → https://gigayama.github.io/Reversi/
+**開く場所** → https://reversi.giga-school.com/
 
 ---
 

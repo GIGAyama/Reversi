@@ -3,7 +3,7 @@
 GIGAスクール端末（Chromebook）やタブレットで、休み時間などに手軽に遊べるリバーシです。
 公立小学校での利用を想定し、**低スペック端末での動作・ふりがな・オフライン利用**を重視しています。
 
-公開先： https://gigayama.github.io/Reversi/
+公開先： https://reversi.giga-school.com/
 
 先生向けの使い方は **[MANUAL.md](MANUAL.md)**、
 実測値と「測っていないもの」は **[AUDIT.md](AUDIT.md)** にあります。
@@ -133,7 +133,7 @@ CI（`.github/workflows/ci.yml`）は、この2つをそのまま順に走らせ
 
 ## 設計上の注意（触る前に読んでください）
 
-このリポジトリは `gigayama.github.io` という**同一オリジンを数十個のアプリで共有**しています。
+旧配信元の `gigayama.github.io` は**同一オリジンを数十個のアプリで共有**していました。同居する配置に戻したときのため、
 そのため、普通なら問題にならない書き方が事故になります。
 
 ### 1. `manifest` の `id` / `scope` / `start_url`
