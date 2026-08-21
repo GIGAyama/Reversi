@@ -1,0 +1,10 @@
+{
+  "distDir": "dist",
+  "maxBytes": 1048576,
+  "precache": [
+    "index.html", "offline.html", "manifest.webmanifest", "install-hook.js",
+    "icon.svg", "icon-192.png", "icon-512.png",
+    "icon-maskable-192.png", "icon-maskable-512.png", "apple-touch-icon.png",
+    "assets/"
+  ]
+}

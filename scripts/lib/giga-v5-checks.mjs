@@ -167,8 +167,19 @@ export function runGigaChecks(root, config) {
     if (/skipWaiting\(/.test(installBlock)) {
       fail('SW_SKIP_WAITING', 'install の中で skipWaiting している（操作中に切り替わって盤面が消える）', 'public/sw.js');
     }
-    if (!/APP_VERSION\s*=\s*['"]v/.test(sw)) {
-      fail('SW_NO_VERSION', 'APP_VERSION が無い（更新が反映されない原因になる）', 'public/sw.js');
+    // 版は手で上げず、tools/build-sw.mjs がビルド後に dist/sw.js を内容ハッシュで
+    // 書き換える（手動運用は 2026-08-21 に全リポジトリで上げ忘れる事故を起こした）。
+    // ここでは「自動生成の形になっているか」と「配る側が 'dev' のままでないか」を見る。
+    // 注意: sw はコメント除去済みなので、目印コメントは原文 swSrc で見る
+    if (!/APP_VERSION = '[^']*'; \/\* __APP_VERSION__ \*\//.test(swSrc)) {
+      fail('SW_NO_VERSION', 'public/sw.js の版が自動生成の形（__APP_VERSION__ の目印つき）になっていない', 'public/sw.js');
+    }
+    if (!existsSync(join(root, 'tools', 'build-sw.mjs'))) {
+      fail('SW_NO_VERSION', 'tools/build-sw.mjs が無い。版の自動生成が外れている', 'tools/build-sw.mjs');
+    }
+    const distSw = join(root, 'dist', 'sw.js');
+    if (existsSync(distSw) && /APP_VERSION = 'dev'/.test(readFileSync(distSw, 'utf8'))) {
+      fail('SW_NO_VERSION', "dist/sw.js の版が 'dev' のまま。build-sw が走っていない", 'dist/sw.js');
     }
     if (!existsSync(join(root, 'public', 'offline.html'))) {
       fail('OFFLINE_HTML', 'offline.html が無い（圏外で「壊れた」と思わせる）', 'public/offline.html');

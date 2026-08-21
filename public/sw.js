@@ -12,37 +12,25 @@
  * Service Worker は localStorage を一切操作しない（そもそも触れない）。
  */
 const CACHE_PREFIX = 'reversi-';
-const APP_VERSION = 'v6';   // ← リリースごとに必ず上げる
+// APP_VERSION は手で上げない。tools/build-sw.mjs がビルド後に dist/sw.js の
+// この行を、先読み対象の内容ハッシュで書き換える（原本のここは 'dev' のまま）。
+const APP_VERSION = 'dev'; /* __APP_VERSION__ */
 const CACHE_STATIC = CACHE_PREFIX + 'static-' + APP_VERSION;
 const CACHE_RUNTIME = CACHE_PREFIX + 'runtime-' + APP_VERSION;
 
 /*
  * ビルドが吐く JS / CSS のファイル名にはハッシュが付くので、手では書けない。
- * ここは vite.config.js の inject-precache-assets プラグインが
- * ビルド時に実ファイル名で埋める。開発時は空のままでよい。
+ * ここは tools/build-sw.mjs がビルド後に dist/ の実体から埋める
+ * （どれを入れるかは sw-build.config.json）。開発時は空のままでよい。
  *
- * ⚠️ この一覧を空のままにすると「オフラインで起動しない」。
+ * ⚠️ この一覧を空のまま配ると「オフラインで起動しない」。
  *    初回訪問では、HTML と JS/CSS は Service Worker が有効になる前に
  *    読み込まれてしまうため、fetch を通らず runtime キャッシュにも入らない。
  *    そのまま圏外にすると、本体の HTML は出るのに中身が読み込めず、
  *    「白い画面」になる。実測して初めて分かった。
+ *    埋め忘れは build-sw.mjs 自身が検知してビルドを落とす。
  */
-const BUILD_ASSETS = [/* @build-assets */];
-
-const PRECACHE_URLS = [
-  './',
-  './index.html',
-  './offline.html',
-  './manifest.webmanifest',
-  './install-hook.js',
-  './icon.svg',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-192.png',
-  './icon-maskable-512.png',
-  './apple-touch-icon.png',
-  ...BUILD_ASSETS,
-];
+const PRECACHE_URLS = []; /* __PRECACHE_URLS__ */
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
