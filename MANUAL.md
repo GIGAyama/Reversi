@@ -176,4 +176,4 @@ iPad では2本指を広げる操作で拡大できます。
 
 ---
 
-困ったときは [GIGA山](https://note.com/cute_borage86) までどうぞ。
+困ったときは [GIGA山](https://giga-school.com) までどうぞ。

@@ -520,7 +520,7 @@ export default function App() {
         <small style={{ fontSize: 'var(--fs-small)' }}>
           © 2026 リバーシ{' '}
           <a
-            href="https://note.com/cute_borage86"
+            href="https://giga-school.com"
             target="_blank"
             rel="noopener noreferrer"
             className="tap-44 inline-block text-gray-600 no-underline"
