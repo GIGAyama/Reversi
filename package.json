@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "node scripts/run-tests.mjs",
     "verify-gate": "node scripts/verify-gate.mjs",
-    "check": "npm run lint && npm test && npm run build && node scripts/check-project.mjs"
+    "check": "npm run lint && npm test && node tools/check-secrets.mjs && npm run build && node scripts/check-project.mjs",
+    "check:secrets": "node tools/check-secrets.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
