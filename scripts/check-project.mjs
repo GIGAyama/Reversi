@@ -4,17 +4,27 @@
  *
  *   npm run check
  *
- * 構成は GIGA Standard v5 §P4 に合わせてある。
- *   scripts/lib/project-quality.mjs … フリート共通の検査（正本）
- *   scripts/lib/giga-v5-checks.mjs  … Part I の検査（このリポジトリに置く）
- * この2つを合成する。正本は差し替えで丸ごと受けられるようにしておき、
- * 手を入れない。
+ * 検査の本体は scripts/lib/giga-v5-checks.mjs にある。
  *
- * ⚠️ 正本はまだこのリポジトリに取り込まれていない。
- *    「無いので 0件でした」と黙って通すと、検査が動いていないことに
- *    気づけないため、未取得であることを毎回はっきり出す。
+ * ここにはかつて、フリート共通の検査の正本 scripts/lib/project-quality.mjs を
+ * 「あれば足す、無ければ CANONICAL_MISSING と注記して素通り」で読む枝があった。
+ * 外した理由（2026-08-22 に実測）:
+ *
+ *   ・その正本は一度も取り込まれず、注記だけを出しつづけていた。
+ *     秘密の直書きを見つける検査もそこに含まれていたので、出荷する
+ *     ディレクトリすべてに Google API キーと同じ形の文字列を置いても
+ *     「指摘 0件」で緑になっていた。
+ *   ・しかも取り込めば動く、というものでもなかった。この枝は
+ *     mod.runProjectQuality を呼ぶが、艦隊のどのコピーもその名前を
+ *     export していない。実際に置いて走らせると
+ *       TypeError: mod.runProjectQuality is not a function
+ *     で落ちる。**在ると壊れ、無いと黙る**枝だった。
+ *
+ * 秘密の直書きは tools/check-secrets.mjs が見る（正本 GIGAyama.github.io の
+ * standards/lib/）。あちらは丸ごと1ファイルで完結し、無ければコマンドごと
+ * 失敗するので、「取り込み忘れたまま緑」にはならない。
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { runGigaChecks } from './lib/giga-v5-checks.mjs';
@@ -25,21 +35,6 @@ const config = JSON.parse(readFileSync(join(ROOT, 'quality.config.json'), 'utf8'
 
 const findings = [];
 const info = [];
-
-// --- フリート共通の検査（正本） ---
-const canonical = join(HERE, 'lib', 'project-quality.mjs');
-if (existsSync(canonical)) {
-  const mod = await import(canonical);
-  const result = await mod.runProjectQuality(ROOT, config);
-  findings.push(...(result.findings ?? []));
-  info.push(...(result.info ?? []));
-} else {
-  info.push({
-    id: 'CANONICAL_MISSING',
-    message: 'scripts/lib/project-quality.mjs（フリート共通の検査の正本）が未取得。'
-      + ' Part I の検査のみを実行している。',
-  });
-}
 
 // --- Part I の検査 ---
 const giga = runGigaChecks(ROOT, config);
