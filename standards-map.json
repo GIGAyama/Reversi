@@ -7,12 +7,10 @@
     {
       "canonical": "lib/check-secrets.mjs",
       "local": "tools/check-secrets.mjs"
-    }
-  ],
-  "unmanaged": [
+    },
     {
-      "local": "scripts/lib/giga-v5-checks.mjs",
-      "reason": "331行のフォーク。検査IDの体系と quality.config.json の書式が正本と違うため、コピーし直しでは移行できない。いちばん効く「SW の版が手書きに戻っていないか」は SW_NO_VERSION が担っていて、あわせて dist/sw.js に APP_VERSION = 'dev' が残っていないかも見ている。ゲート本体の移行は急がない（standards/docs/gate-forks.md）"
+      "canonical": "lib/giga-v5-checks.mjs",
+      "local": "scripts/lib/giga-v5-checks.mjs"
     }
   ]
 }

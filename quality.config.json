@@ -1,15 +1,47 @@
 {
   "repoName": "Reversi",
-
   "maxFileLines": 5000,
   "maxFileKb": 400,
   "maxInitialJsKb": 300,
   "maxImageKb": 150,
   "maskableMaxOutsidePercent": 0.2,
-
   "_comment": [
     "GIGA Standard v5 Part I §8 の性能目標をそのまま置いている。",
     "repoName は manifest の id/scope/start_url の検査に使う。",
     "リポジトリをコピーして新しいアプリを作るときは、ここを最初に書き換える。"
-  ]
+  ],
+  "standard": {
+    "//": "正本 GIGAyama.github.io/standards/lib/giga-v5-checks.mjs に渡す設定。",
+    "repoName": "Reversi",
+    "sw": "vite",
+    "swSource": "public/sw.js",
+    "swVersionConst": "APP_VERSION",
+    "manifest": "public/manifest.webmanifest",
+    "//siteRoot": "Vite 型なので public/ の中身が配信の直下に来る。ここを書かないと offline.html とアイコンを「ありません」と誤検知する。",
+    "siteRoot": "public",
+    "jsDirs": [
+      "src"
+    ],
+    "cssDirs": [
+      "src"
+    ],
+    "htmlFiles": [
+      "index.html",
+      "public/offline.html"
+    ],
+    "imageDirs": [
+      "public"
+    ],
+    "allowedRemoteScripts": [
+      "^https://fonts\\.googleapis\\.com(/|$)",
+      "^https://fonts\\.gstatic\\.com(/|$)"
+    ],
+    "//allowedRemoteScripts": "本文の書体に Google Fonts の Zen Maru Gothic を使っている。読めなくても src/index.css の代替（Hiragino Maru Gothic ProN ほか）に落ちるだけで、動きは変わらない。艦隊の先例（Shiritori_fighter・KAKE_Master）と同じ書き方にそろえた（2026-08-23）",
+    "skips": [
+      {
+        "id": "C_PAGEHIDE",
+        "reason": "1台の端末を2人で囲んで指すアプリで、対局のとちゅうも結果も保存しない（src に localStorage も IndexedDB も1件も無い）。締めて確定する記録が無いので pagehide の出番が無い（2026-08-23）"
+      }
+    ]
+  }
 }

@@ -68,7 +68,7 @@ npm run preview  # ビルドしたものを確認する
 
 ```bash
 npm run check        # lint → test → build → 品質ゲート
-npm run verify-gate  # 品質ゲート自体を「わざと壊して」確かめる
+npm run verify-gate  # 品質ゲート自体を「わざと壊して」確かめる（check-project.mjs --self-test）
 ```
 
 CI（`.github/workflows/ci.yml`）は、この2つをそのまま順に走らせます。
@@ -114,7 +114,8 @@ CI（`.github/workflows/ci.yml`）は、この2つをそのまま順に走らせ
 | `scripts/check-project.mjs` | 品質ゲートの入口。正本があれば合成する |
 | `scripts/lib/giga-v5-checks.mjs` | 品質ゲートの検査本体 |
 | `scripts/lib/png.mjs` | PNG を画素まで読む（アイコンの透明・セーフゾーン検査用） |
-| `scripts/verify-gate.mjs` | 品質ゲートを 27通りの壊し方で確かめる |
+| `scripts/lib/giga-v5-checks.mjs` | 共通の検査の【正本のコピー】。直すときは正本（GIGAyama.github.io/standards/lib/）を直して配る |
+| `scripts/lib/local-checks.mjs` | このリポジトリだけの検査（正本に行き先が無かった5件） |
 | `quality.config.json` | 品質ゲートの設定（`repoName`・各種の上限値） |
 | `.github/workflows/ci.yml` | push / PR で `check` と `verify-gate` を走らせる |
 | `.github/workflows/deploy.yml` | main への push で品質ゲートを通してから GitHub Pages へ公開 |
