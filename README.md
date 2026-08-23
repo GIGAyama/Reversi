@@ -94,6 +94,7 @@ CI（`.github/workflows/ci.yml`）は、この2つをそのまま順に走らせ
 | ファイル | 役割 |
 |---|---|
 | `index.html` | 入れ物。CSP・PWA の `<head>` 一式 |
+| `privacy.html` `terms.html` | プライバシーポリシーと利用規約。1枚で完結する静的な頁（JS も外部 CSS も読まない）。**`vite.config.js` の `rollupOptions.input` に並べたものだけが `dist` に入る**ので、頁を足したらそこにも足すこと。抜けると本番で 404 になる |
 | `src/main.jsx` | 起動と Service Worker の登録 |
 | `src/App.jsx` | 画面（盤面・スコア・操作・2つのモーダル・効果音） |
 | `src/lib/reversi.js` | **ゲームの中核ロジック（純粋関数のみ）** |
@@ -124,7 +125,7 @@ CI（`.github/workflows/ci.yml`）は、この2つをそのまま順に走らせ
 
 | ファイル | 編集してよいか |
 |---|---|
-| `src/**` `public/**` `index.html` | **ここを直す** |
+| `src/**` `public/**` `index.html` `privacy.html` `terms.html` | **ここを直す** |
 | `dist/**` | **手で編集しない**（`npm run build` の生成物） |
 
 `dist/sw.js` の先読み一覧は、`vite.config.js` のプラグインがビルド時に

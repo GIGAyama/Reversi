@@ -76,6 +76,23 @@ export function runBuildChecks(root, config) {
   // public/sw.js の APP_VERSION は 'dev' が正しい（配る前の値）。
   // ビルドで内容ハッシュに書き換わるので、dist に 'dev' が残っていたら
   // build-sw が走っていない。版が上がらないと、直した画面が端末に届かない。
+  // 配信物に入るはずの HTML が、ほんとうに dist に入っているか。
+  // Vite が dist へ出す HTML は vite.config.js の rollupOptions.input に
+  // 並べたものだけである。直下に privacy.html を置いただけでは黙って落ち、
+  // 本番で 404 になる（2026-08-23 に実際に起きた）。原文をいくら読んでも
+  // 分からず、ビルド結果を見て初めて分かるので、ここで見る。
+  const siteRoot = String(config.standard?.siteRoot || '').replace(/\/*$/, '/');
+  // siteRoot（public/）の中身は Vite がそのまま配信直下へ写すので、
+  // 入口に並べる必要が無い。ここでは見ない（E_OFFLINE_HTML が別に見る）。
+  const pages = (config.standard?.htmlFiles || [])
+    .filter((rel) => !(siteRoot && rel.startsWith(siteRoot)));
+  const missingPages = pages.filter((rel) => !existsSync(join(dist, rel)));
+  add('E12_HTML_SHIPPED', missingPages.length === 0,
+    missingPages.length
+      ? `${missingPages.join(' / ')} が dist に無い（本番で 404 になる）`
+      : pages.join(' / '),
+    'P1');
+
   const distSw = join(dist, 'sw.js');
   if (existsSync(distSw)) {
     const filled = !/APP_VERSION = 'dev'/.test(readFileSync(distSw, 'utf8'));
