@@ -25,8 +25,11 @@
     "cssDirs": [
       "src"
     ],
+    "//htmlFiles": "配信物に入る HTML はぜんぶ並べる。ここに無い HTML は検査されない（privacy.html / terms.html は 2026-08-23 まで漏れていた）。",
     "htmlFiles": [
       "index.html",
+      "privacy.html",
+      "terms.html",
       "public/offline.html"
     ],
     "imageDirs": [
@@ -34,8 +37,10 @@
     ],
     "allowedRemoteScripts": [
       "^https://fonts\\.googleapis\\.com(/|$)",
-      "^https://fonts\\.gstatic\\.com(/|$)"
+      "^https://fonts\\.gstatic\\.com(/|$)",
+      "^https://reversi\\.giga-school\\.com(/|$)"
     ],
+    "//allowedRemoteScripts2": "自ドメインを足したのは B_NO_CDN_CODE の誤検知よけである。privacy.html / terms.html の <link rel=\"canonical\" href=\"https://reversi.giga-school.com/...\"> は、資産を取りに行く指定ではなく「この頁の正しい住所はこれ」という申告にすぎない。正本の検査は <link ... href=\"https://\"> を一律に「読んでいる」と見るため落ちる（<a href> の誤検知は正本で直された経緯がある。canonical も同じ筋なので、正本 GIGAyama.github.io/standards/lib/giga-v5-checks.mjs 側で直すのが本筋）。自ドメインは配信元そのものなので、ここで許しても外から実行コードが増えることはない（2026-08-23）",
     "//allowedRemoteScripts": "本文の書体に Google Fonts の Zen Maru Gothic を使っている。読めなくても src/index.css の代替（Hiragino Maru Gothic ProN ほか）に落ちるだけで、動きは変わらない。艦隊の先例（Shiritori_fighter・KAKE_Master）と同じ書き方にそろえた（2026-08-23）",
     "skips": [
       {

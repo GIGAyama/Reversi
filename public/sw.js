@@ -69,13 +69,27 @@ self.addEventListener('fetch', (event) => {
   // 更新をすぐ届けつつ、圏外ならキャッシュ済みの本体、それも無ければ offline.html を出す。
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
+      // ⚠️ 画面ごとに別の鍵で控える。
+      //    以前はどの画面を開いても './index.html' に上書きしていた。
+      //    配信物が index.html だけだったころは害が無かったが、
+      //    privacy.html / terms.html を配るようになると、
+      //    そちらを1回開いただけでアプリ本体の控えがポリシーの文面に
+      //    置き換わり、圏外で起動すると盤面ではなく規約が出る。
+      //    入口だけは './index.html' にそろえる。先読みが入れている鍵がそれで、
+      //    入口の URL は「/」と「/index.html」の2通りに分かれるため。
+      const entry = url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
+      const key = entry ? './index.html' : url.origin + url.pathname;
       try {
         const response = await fetch(request);
-        const copy = response.clone();
-        caches.open(CACHE_STATIC).then((cache) => cache.put('./index.html', copy));
+        // 404 や 503 を控えると、圏外でその画面がずっとエラーのまま出る。
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_STATIC).then((cache) => cache.put(key, copy));
+        }
         return response;
       } catch {
-        return (await caches.match('./index.html'))
+        return (await caches.match(key))
+          || (await caches.match('./index.html'))
           || (await caches.match('./offline.html'))
           || Response.error();
       }
