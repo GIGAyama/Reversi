@@ -526,6 +526,14 @@ export default function App() {
             className="tap-44 inline-block text-gray-600 no-underline"
           >
             GIGA山
+          </a>{' '}
+          <a
+            href="https://giga-school.com/apps/reversi/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="tap-44 inline-block text-gray-600 no-underline"
+          >
+            使い方を読む
           </a>
         </small>
       </footer>
