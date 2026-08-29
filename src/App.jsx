@@ -516,7 +516,10 @@ export default function App() {
       </main>
 
       {/* フッター */}
-      <footer className="w-full h-[30px] flex items-center justify-center text-gray-600 bg-white/90 border-t z-50 shrink-0">
+      {/* ⚠️ 高さを h-[30px] で固定しない（2026-08-29 に外した）。行き先のリンクは
+          正本の部品が出すもので、タップ領域が 48px ある（艦隊のルール 2）。
+          30px のままだと 14px はみ出す。min-h にして、中身に合わせて伸ばす。 */}
+      <footer className="w-full min-h-[56px] flex flex-wrap items-center justify-center gap-x-2 text-gray-600 bg-white/90 border-t z-50 shrink-0">
         <small style={{ fontSize: 'var(--fs-small)' }}>
           © 2026 リバーシ{' '}
           <a
@@ -526,16 +529,16 @@ export default function App() {
             className="tap-44 inline-block text-gray-600 no-underline"
           >
             GIGA山
-          </a>{' '}
-          <a
-            href="https://giga-school.com/apps/reversi/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="tap-44 inline-block text-gray-600 no-underline"
-          >
-            使い方を読む
           </a>
         </small>
+        {/* ⚠️ 行き先のリンクを手で書かないこと。中身は正本の部品
+            standards/web/giga-app-links.js（配布物 public/giga-app-links.js）が
+            この中に出す。文言も並びも行き先も、あちらで決まっている。
+
+            ⚠️ data-links で「つかいかた」を外してある。このアプリにはまだ
+               docs/manual/ が無く、既定のまま出すと行き止まりのリンクになる。
+               マニュアルを書いたら、この属性ごと消すこと。 */}
+        <span data-giga-links data-links="terms,privacy" />
       </footer>
 
       {/* あそびかたモーダル */}
